@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ぴよ</title>
+<style>
+  :root{
+    --ink:#2a2f3b; --ink-soft:#6b7280; --accent:#4e7a8c; --accent-ink:#ffffff; --btn:#ffffff; --line:#d6dde2;
+  }
+  [hidden]{display:none!important}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#cfd8de;color:var(--ink);
+    font-family:"Hiragino Maru Gothic ProN","Zen Maru Gothic","Kosugi Maru","Hiragino Sans",sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  #app{position:relative;max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;
+    background:#dde4e9;overflow:hidden;transition:background .8s}
+  .top{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 4px 22px;font-size:15px;color:var(--ink-soft)}
+  .top .right{display:flex;align-items:center;gap:6px}
+  .top .day{font-size:13px;letter-spacing:.06em}
+  .iconbtn{width:44px;height:44px;border:none;background:none;border-radius:12px;display:grid;place-items:center;color:inherit;cursor:pointer;padding:0}
+  .iconbtn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .iconbtn:focus-visible{outline:3px solid var(--accent)}
+  body.night .top{color:#aeb6c8}
+  .room{position:relative;flex:1;min-height:0;overflow:hidden}
+  .bg{position:absolute;inset:0;background:url(img/room2.webp) center bottom/cover no-repeat;transition:filter .8s}
+  .bg.pastel{background-image:url(img/room.webp)}
+  .tint{position:absolute;inset:0;mix-blend-mode:multiply;pointer-events:none;transition:background .8s}
+  .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 50% 78%,rgba(255,214,140,.32),transparent 70%);opacity:0;transition:opacity .8s}
+  #piyoWrap{position:absolute;left:50%;transition:opacity .6s}
+  #piyoG{position:relative;width:100%;height:100%;transform-origin:50% 100%}
+  #piyoG img{position:absolute;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+  #body{left:0;top:0;width:100%;height:100%}
+  .fx{position:absolute;pointer-events:none;opacity:0;transition:opacity .3s}
+  .fx svg{width:100%;height:100%;display:block;overflow:visible}
+  .note{position:absolute;left:50%;bottom:62%;width:max-content;transform:translateX(-50%) rotate(-1.5deg);background:#fffdf7;
+    padding:12px 18px 13px;border-radius:4px;box-shadow:0 6px 18px rgba(30,40,60,.14);font-size:17px;line-height:1.6;
+    max-width:84%;text-align:center;text-wrap:balance;opacity:0;transition:opacity .6s, transform .6s;pointer-events:none}
+  .note.show{opacity:1;transform:translateX(-50%) rotate(-1.5deg) translateY(4px)}
+  .note::after{content:"";position:absolute;left:50%;bottom:-7px;width:14px;height:14px;background:#fffdf7;transform:translateX(-50%) rotate(45deg)}
+  .tag{position:absolute;left:50%;bottom:16%;transform:translateX(-50%) rotate(2deg);background:#fff;border:1.5px solid #d9cdbb;
+    border-radius:6px;padding:9px 16px;font-size:15px;color:#5b5346;box-shadow:0 4px 10px rgba(0,0,0,.08);white-space:nowrap}
+  .tag b{display:block;font-size:12px;font-weight:400;color:#8a8070;margin-bottom:2px}
+  .acts{display:flex;justify-content:center;gap:26px;padding:18px 0 calc(26px + env(safe-area-inset-bottom))}
+  .act{width:78px;height:78px;border-radius:50%;border:1.5px solid var(--line);background:var(--btn);display:grid;place-items:center;
+    cursor:pointer;transition:transform .15s, background .3s, border-color .3s;padding:0;color:var(--ink)}
+  .act:active{transform:scale(.92)}
+  .act:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  .act svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .act.done{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  body.night .act:not(.done){background:#39415e;border-color:#4a5374;color:#dfe4f0}
+  .sheet{position:absolute;inset:0;background:rgba(20,24,36,.38);display:flex;align-items:flex-end;z-index:5}
+  .sheet .panel{width:100%;max-height:86%;overflow:auto;background:#fbfbfa;border-radius:22px 22px 0 0;padding:24px 22px calc(26px + env(safe-area-inset-bottom));
+    animation:up .35s cubic-bezier(.2,.9,.3,1)}
+  @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  .sheet h2{margin:0 0 16px;font-size:19px;font-weight:700;text-align:center}
+  .sheet h3{margin:20px 0 10px;font-size:14px;font-weight:700;color:var(--ink-soft)}
+  .sheet p{margin:0 0 18px;font-size:15px;line-height:1.75;color:#4b5160;text-align:center}
+  .choices{display:grid;gap:10px}
+  .choice{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:15px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer}
+  .choice.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .choice.quiet{border:none;background:none;color:var(--ink-soft);font-size:14px}
+  .choice small{display:block;font-size:12px;opacity:.85;margin-top:3px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .cell{position:relative;aspect-ratio:1;border:1.5px solid var(--line);border-radius:14px;background:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
+  .cell svg{width:70%;height:70%}
+  .cell.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+  .cell.empty{background:#f1f3f4;cursor:default}
+  .cell .lock{position:absolute;right:5px;top:5px;width:16px;height:16px;fill:none;stroke:#8a93a0;stroke-width:1.8}
+  .cell .nm{position:absolute;bottom:3px;left:0;right:0;font-size:10px;color:var(--ink-soft);text-align:center}
+  .count{font-weight:400;margin-left:6px}
+  .dev{position:absolute;right:8px;top:62px;z-index:3;display:flex;flex-direction:column;gap:6px;font-family:-apple-system,sans-serif}
+  .dev button{font-size:11px;padding:6px 8px;border-radius:8px;border:1px solid #9aa4b0;background:rgba(255,255,255,.9);cursor:pointer}
+  .burst{position:absolute;inset:0;pointer-events:none;z-index:4}
+  .breathe{animation:breathe 3.2s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}
+  .hop{animation:hop .7s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes hop{0%{transform:translateY(0) scale(1.08,.9)}40%{transform:translateY(-34px) scale(.94,1.08)}75%{transform:translateY(0) scale(1.1,.9)}100%{transform:none}}
+  .leave{animation:leave 1.4s ease-in forwards}
+  @keyframes leave{0%{transform:none}30%{transform:translateY(-20px)}100%{transform:translate(260px,-6px) scale(.6)}}
+  .arrive{animation:arrive 1.1s cubic-bezier(.2,1.2,.4,1)}
+  @keyframes arrive{0%{transform:translate(-260px,-6px) scale(.6)}70%{transform:translate(0,-18px)}100%{transform:none}}
+  @media (prefers-reduced-motion: reduce){.breathe,.hop,.leave,.arrive{animation:none}.note{transition:none}.sheet .panel{animation:none}}
+</style>
+<script>
+  window.__booted = false;
+  (function () {
+    function show(m){var e=document.getElementById('err');if(!e){e=document.createElement('div');e.id='err';
+      e.style.cssText='position:fixed;left:0;right:0;bottom:0;background:#a01818;color:#fff;font:13px monospace;padding:8px;z-index:99;white-space:pre-wrap';
+      (document.body||document.documentElement).appendChild(e);}e.textContent+=m+'\n';}
+    window.onerror=function(m,s,l,c){show('Error: '+m+' @'+l+':'+c)};
+    window.addEventListener('unhandledrejection',function(e){show('Rejection: '+e.reason)});
+    (function w(){setTimeout(function(){if(window.__booted)return;if(document.visibilityState==='hidden')return w();show('起動できませんでした / '+navigator.userAgent)},4000)})();
+  })();
+</script>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <span id="date"></span>
+    <span class="right">
+      <span class="day" id="dayCount"></span>
+      <button class="iconbtn" id="openCloset" aria-label="ぴよの服とひろったもの">
+        <svg viewBox="0 0 24 24"><path d="M12 6.5a2 2 0 1 1 2-2"/><path d="M12 6.5v1.2L3.5 14a1.3 1.3 0 0 0 .8 2.4h15.4a1.3 1.3 0 0 0 .8-2.4L12 7.7"/></svg>
+      </button>
+    </span>
+  </header>
+  <section class="room">
+    <div class="bg" id="bg"></div>
+    <div class="tint" id="tint"></div>
+    <div class="glow" id="glow"></div>
+    <div id="piyoWrap" aria-label="ぴよ" role="img">
+      <div id="piyoG" class="breathe">
+        <img id="body" src="img/piyo.webp" alt="">
+        <img id="wearNeck" alt="" hidden>
+        <img id="wearHat" alt="" hidden>
+      </div>
+      <div class="fx" id="bowl" style="left:88%;bottom:0;width:30%;height:16%"><svg viewBox="-24 -14 48 26"><path d="M-22 -6 q22 22 44 0 z" fill="#f7f7f5" stroke="#b9b0a3" stroke-width="2"/><circle cx="-9" cy="-8" r="4" fill="#e7c48a"/><circle cx="0" cy="-10" r="4" fill="#e7c48a"/><circle cx="9" cy="-8" r="4" fill="#e7c48a"/></svg></div>
+      <div class="fx" id="bubbles" style="left:-10%;top:0;width:120%;height:80%"><svg viewBox="0 0 120 80" fill="rgba(255,255,255,.5)" stroke="#9ec5d8" stroke-width="1.4"><circle cx="12" cy="50" r="5"/><circle cx="108" cy="40" r="7"/><circle cx="98" cy="14" r="4"/><circle cx="20" cy="18" r="4"/></svg></div>
+      <div class="fx" id="zzz" style="left:78%;top:-4%;width:24%;height:24%"><svg viewBox="0 0 30 30" fill="none" stroke="#c8cfe4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22 h10 l-10 10 h10"/><path d="M16 4 h8 l-8 8 h8"/></svg></div>
+      <div class="fx" id="gift" style="left:96%;bottom:2%;width:22%;height:22%"></div>
+    </div>
+    <div class="note" id="note" role="status" aria-live="polite"><span id="noteText"></span></div>
+    <div class="tag" id="tag" hidden><b>おでかけ中</b><span id="tagText"></span></div>
+  </section>
+  <nav class="acts" aria-label="きょうの三つ">
+    <button class="act" id="act-meal" aria-label="ごはん">
+      <svg viewBox="0 0 32 32"><path d="M5 15h22a11 11 0 0 1-22 0z"/><path d="M9 26h14"/><path d="M12 10c0-2 2-2 2-4M17 10c0-2 2-2 2-4"/></svg>
+    </button>
+    <button class="act" id="act-bath" aria-label="おふろ">
+      <svg viewBox="0 0 32 32"><path d="M16 4c4 6 8 10 8 15a8 8 0 0 1-16 0c0-5 4-9 8-15z"/><path d="M12.5 19.5a3.5 3.5 0 0 0 3.5 3.5"/></svg>
+    </button>
+    <button class="act" id="act-sleep" aria-label="ねる">
+      <svg viewBox="0 0 32 32"><path d="M20 5a11 11 0 1 0 7 17A9 9 0 0 1 20 5z"/></svg>
+    </button>
+  </nav>
+
+  <div class="sheet" id="moodSheet" hidden>
+    <div class="panel">
+      <h2>きょうは、どんな日だった？</h2>
+      <div class="choices">
+        <button class="choice" data-mood="0">ふつう</button>
+        <button class="choice" data-mood="1">すこし重い</button>
+        <button class="choice" data-mood="2">重い</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="typeSheet" hidden>
+    <div class="panel">
+      <h2 id="typeTitle"></h2>
+      <p id="typeBody"></p>
+      <div class="choices"><button class="choice primary" id="typeOk">見る</button></div>
+    </div>
+  </div>
+
+  <div class="sheet" id="closetSheet" hidden>
+    <div class="panel">
+      <h2>ぴよのもの</h2>
+      <h3>着る・部屋</h3>
+      <div class="grid" id="wearGrid"></div>
+      <h3>ひろったもの<span class="count" id="foundCount"></span></h3>
+      <div class="grid" id="foundGrid"></div>
+      <div class="choices" style="margin-top:18px"><button class="choice quiet" id="closetClose">とじる</button></div>
+    </div>
+  </div>
+
+  <div class="sheet" id="plusSheet" hidden>
+    <div class="panel">
+      <h2>ぴよの服と部屋をふやす</h2>
+      <p>ごはん・おふろ・ねる・おでかけは<br>ずっと無料です。<br>ふえるのは、着るものと部屋です。</p>
+      <div class="choices">
+        <button class="choice primary" id="plusYear">1年で3,600円<small>7日間は無料。終わる前にお知らせします</small></button>
+        <button class="choice" id="plusMonth">1か月で480円</button>
+        <button class="choice quiet" id="plusNo">今は難しい</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet" id="hardSheet" hidden>
+    <div class="panel">
+      <h2>だいじょうぶです</h2>
+      <p>今のまま、ずっと使えます。<br>おでかけを30回すると、値段が半分になります。</p>
+      <div class="choices"><button class="choice primary" id="hardOk">わかった</button></div>
+    </div>
+  </div>
+
+  <svg class="burst" id="burst" viewBox="0 0 360 640" preserveAspectRatio="none"></svg>
+  <div class="dev" id="dev" hidden>
+    <button data-dev="hour">+1時間</button>
+    <button data-dev="six">+6時間</button>
+    <button data-dev="day">+1日</button>
+    <button data-dev="night14">夜型で14日</button>
+    <button data-dev="heavy14">無理しがちで14日</button>
+    <button data-dev="early14">早寝で14日</button>
+    <button data-dev="away3">3日放置</button>
+    <button data-dev="trips">おでかけ8回分</button>
+    <button data-dev="reset">最初から</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const KEY = 'piyo-proto-v1';
+const DAY = 86400000, HOUR = 3600000;
+const DEV = new URLSearchParams(location.search).has('dev');
+
+// ---------- ひろったもの・着るもの ----------
+// kind: thing=棚に並ぶ / hat・neck・face=着られる。plus=有料で増えるもの（おでかけでは出ない）
+const ITEMS = [
+  { id: 'stone', kind: 'thing', name: 'まるい石', line: '川のほうまで行った。まるい石をひろった。', svg: '<ellipse cx="0" cy="0" rx="9" ry="7" fill="#a9a59d"/><ellipse cx="-3" cy="-2" rx="3" ry="2" fill="#c7c3bb"/>' },
+  { id: 'leaf', kind: 'thing', name: '赤い葉っぱ', line: '赤い葉っぱが落ちてた。きれいだったから持ってきた。', svg: '<path d="M-9 6 Q-8 -8 8 -8 Q8 6 -9 6Z" fill="#d36a4a"/><path d="M-9 6 L5 -5" stroke="#9c4a33" stroke-width="1.2"/>' },
+  { id: 'acorn', kind: 'thing', name: 'どんぐり', line: '公園でどんぐりをみつけた。', svg: '<ellipse cx="0" cy="2" rx="6" ry="8" fill="#b07a45"/><path d="M-7 -3 Q0 -10 7 -3Z" fill="#7a5532"/>' },
+  { id: 'shell', kind: 'thing', name: '貝がら', line: '海までは遠かった。でも貝がらがあった。', svg: '<path d="M-9 6 Q0 -12 9 6Z" fill="#f2d9cf"/><path d="M0 6 L0 -6 M-4 6 L-2 -4 M4 6 L2 -4" stroke="#d9b5a7" stroke-width="1.2"/>' },
+  { id: 'feather', kind: 'thing', name: '羽', line: '空から羽が落ちてきた。', svg: '<path d="M-6 8 Q-6 -6 7 -9 Q4 4 -6 8Z" fill="#dfe6ee"/><path d="M-6 8 L6 -8" stroke="#a9b6c6" stroke-width="1.2"/>' },
+  { id: 'marble', kind: 'thing', name: 'ビー玉', line: '道のすみにビー玉。のぞくと空がまがって見える。', svg: '<circle r="7" fill="#9ec5d8"/><circle cx="-2" cy="-2" r="2" fill="#fff" opacity=".8"/>' },
+  { id: 'button', kind: 'thing', name: 'ボタン', line: 'だれかのボタンをひろった。返す人がわからない。', svg: '<circle r="7" fill="#c98f5a"/><circle cx="-2" cy="-2" r="1.3" fill="#7a5532"/><circle cx="2" cy="-2" r="1.3" fill="#7a5532"/><circle cx="-2" cy="2" r="1.3" fill="#7a5532"/><circle cx="2" cy="2" r="1.3" fill="#7a5532"/>' },
+  { id: 'ticket', kind: 'thing', name: '切符', line: '駅で古い切符をみつけた。どこまで行けるんだろう。', svg: '<rect x="-10" y="-6" width="20" height="12" rx="1.5" fill="#f3e3b5"/><path d="M-6 -1 h12 M-6 2 h8" stroke="#b39d62" stroke-width="1.2"/>' },
+  { id: 'pinecone', kind: 'thing', name: 'まつぼっくり', line: '山のほうは、もう少し寒かった。', svg: '<ellipse cx="0" cy="0" rx="6" ry="9" fill="#8b6a46"/><path d="M-5 -3 h10 M-6 1 h12 M-5 5 h10" stroke="#5f4630" stroke-width="1.2"/>' },
+  { id: 'key', kind: 'thing', name: '小さなかぎ', line: '小さなかぎ。なにをあけるかぎだろう。', svg: '<circle cx="-5" cy="0" r="4" fill="none" stroke="#c9a43a" stroke-width="2"/><path d="M-1 0 h10 M6 0 v3 M9 0 v3" stroke="#c9a43a" stroke-width="2"/>' },
+  { id: 'clover', kind: 'thing', name: '四つ葉', line: '四つ葉をさがしてたら、本当にあった。', svg: '<g fill="#6aa86a"><circle cx="-3" cy="-3" r="3.5"/><circle cx="3" cy="-3" r="3.5"/><circle cx="-3" cy="3" r="3.5"/><circle cx="3" cy="3" r="3.5"/></g>' },
+  { id: 'candy', kind: 'thing', name: 'あめ', line: 'お店の人があめをくれた。半分あげる。', svg: '<circle r="5" fill="#f3b7ae"/><path d="M-5 0 l-5 -4 v8z M5 0 l5 -4 v8z" fill="#f3b7ae"/>' },
+  { id: 'ribbon', kind: 'hat', name: 'リボン', line: '木の枝にリボンがひっかかってた。もらってきた。', img: 'outfit_ribbon' },
+  { id: 'cap', kind: 'hat', name: 'ぼうし', line: '公園のベンチに、ぼうしがあった。ちょうどよかった。', img: 'outfit_cap' },
+  { id: 'scarf', kind: 'neck', name: 'マフラー', line: '風がつめたかった。マフラーを巻いて帰ってきた。', img: 'outfit_scarf' },
+  // 有料（ぴよの服と部屋をふやす）
+  { id: 'pastel', kind: 'room', plus: true, name: 'パステルの部屋', img: 'room' },
+];
+const FREE = ITEMS.filter(i => !i.plus);
+// 服の絵の置き方（ぴよふぃっと Character.tsx と同じ比率）: [幅, 上からの位置]
+const WEAR_POS = { ribbon: [0.45, 0.02], cap: [0.50, -0.08], scarf: [0.68, 0.45] };
+const thumb = (i, full) => i.img
+  ? `<img src="img/${i.img}.webp" alt="" style="width:${full || i.kind === 'room' ? 100 : 74}%;height:${full || i.kind === 'room' ? 100 : 74}%;object-fit:${i.kind === 'room' ? 'cover' : 'contain'};border-radius:${i.kind === 'room' ? 12 : 0}px">`
+  : `<svg viewBox="-15 -15 30 30">${i.svg}</svg>`;
+const byId = (id) => ITEMS.find(i => i.id === id);
+
+// ---------- 保存 ----------
+function blank() { return { first: null, logs: [], moods: {}, lines: {}, lastLineDay: null, offset: 0, type: null, typeShown: false,
+  trip: null, lastTripDay: null, found: [], trips: 0, wear: { hat: null, neck: null, room: null }, plus: false, hardShown: false }; }
+let S;
+try { S = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) { S = blank(); }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+const now = () => Date.now() + S.offset;
+const dayKey = (t) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+// 深夜4時までは前の日として扱う
+const lifeDay = (t) => dayKey(t - 4 * HOUR);
+const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / DAY);
+const todayLogs = (type) => S.logs.filter(l => lifeDay(l.t) === lifeDay(now()) && (!type || l.type === type));
+const at = (base, h, m = 0) => { const d = new Date(base); d.setHours(h, m, 0, 0); return d.getTime(); };
+
+// ---------- 状況を数える ----------
+function context() {
+  const t = now(), d = new Date(t), today = lifeDay(t);
+  const dayNo = S.first ? daysBetween(S.first, today) + 1 : 1;
+  const yest = lifeDay(t - DAY);
+  const yLogs = S.logs.filter(l => lifeDay(l.t) === yest);
+  const lastLog = S.logs.length ? S.logs[S.logs.length - 1].t : null;
+  const gapDays = lastLog ? daysBetween(lifeDay(lastLog), today) : 0;
+  const sleeps = S.logs.filter(l => l.type === 'sleep');
+  let sleepStreak = 0;
+  for (let i = 1; i <= 30; i++) {
+    const k = lifeDay(t - i * DAY);
+    const s = sleeps.find(l => lifeDay(l.t) === k);
+    if (s && new Date(s.t).getHours() >= 20) sleepStreak++; else break;
+  }
+  const lastBath = [...S.logs].reverse().find(l => l.type === 'bath');
+  const sleepHours = sleeps.slice(-5).map(l => { const h = new Date(l.t).getHours() + new Date(l.t).getMinutes() / 60; return h < 12 ? h + 24 : h; });
+  return {
+    t, hour: d.getHours(), month: d.getMonth() + 1, date: d.getDate(), wday: d.getDay(), today, dayNo, gapDays,
+    yAll: ['meal', 'bath', 'sleep'].every(k => yLogs.some(l => l.type === k)),
+    yHeavy: S.moods[yest] === 2, sleepStreak,
+    sameTime: sleepHours.length >= 5 && Math.max(...sleepHours) - Math.min(...sleepHours) <= 1,
+    daysSinceBath: lastBath ? daysBetween(lifeDay(lastBath.t), today) : (dayNo >= 4 ? 99 : 0),
+    total: S.logs.length,
+  };
+}
+
+// ---------- 一言（喋らないけど覚えている） ----------
+const LINES = [
+  { id: 'hello', when: c => c.total === 0 && c.dayNo === 1, text: 'はじめまして。' },
+  { id: 'back', when: c => c.gapDays >= 3, text: 'おかえり。' },
+  { id: 'year', when: c => c.month === 12 && c.date === 31, text: 'ことしも、おつかれさま。' },
+  { id: 'month', when: c => c.dayNo === 30, text: 'ひと月いっしょにいる。' },
+  { id: 'week', when: c => c.dayNo === 7, text: '一週間たった。' },
+  { id: 'all', when: c => c.yAll, text: 'きのうは三つともやってた。' },
+  { id: 'sleep3', when: c => c.sleepStreak >= 3, text: '三日つづけて、ちゃんと寝てる。' },
+  { id: 'same', when: c => c.sameTime, text: 'いつも同じくらいの時間に寝るね。' },
+  { id: 'late', when: c => c.hour >= 1 && c.hour < 4, text: 'まだ起きてたんだ。' },
+  { id: 'early', when: c => c.hour >= 4 && c.hour < 7, text: 'はやいね。' },
+  { id: 'bath', when: c => c.daysSinceBath >= 3 && c.daysSinceBath < 90, text: 'おふろ、いつでもいいよ。' },
+  { id: 'sat', when: c => c.wday === 6, text: '土曜日だ。' },
+];
+function pickLine(c) {
+  if (S.lastLineDay === c.today || c.yHeavy) return null;
+  for (const L of LINES) {
+    const last = S.lines[L.id];
+    if (last && daysBetween(last, c.today) < 90) continue;
+    if (L.when(c)) return L;
+  }
+  return null;
+}
+let noteTimer = 0;
+function showNote(text, ms = 5200) {
+  $('noteText').textContent = text;
+  $('note').classList.add('show');
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => $('note').classList.remove('show'), ms);
+}
+function maybeSpeak() {
+  if (isAway()) return null;
+  const c = context(), L = pickLine(c);
+  if (!L) return null;
+  S.lines[L.id] = c.today; S.lastLineDay = c.today; save();
+  showNote(L.text);
+  return L.id;
+}
+
+// ---------- おでかけ ----------
+// 三つそろった日に出かける。夜にそろったら、ひと晩寝て朝7時に出る。帰りは夕方6時（遅ければ出てから6時間後）
+function planTrip() {
+  const t = now(), h = new Date(t).getHours();
+  const depart = (h >= 19 || h < 4) ? at(h < 4 ? t : t + DAY, 7) : (h < 7 ? at(t, 7) : t);
+  const ret = Math.max(at(depart, 18), depart + 6 * HOUR);
+  // まだ持っていないものを優先して持ち帰る
+  const notYet = FREE.filter(i => !S.found.includes(i.id));
+  const pool = notYet.length ? notYet : FREE;
+  const item = pool[(S.trips * 7 + S.found.length * 3) % pool.length].id;
+  S.trip = { depart, ret, item };
+  S.lastTripDay = lifeDay(t);
+  save();
+}
+const isAway = () => !!(S.trip && now() >= S.trip.depart && now() < S.trip.ret);
+function checkReturn() {
+  if (!S.trip || now() < S.trip.ret) return false;
+  const it = byId(S.trip.item);
+  S.trip = null; S.trips++; S.lastReturn = now();
+  if (!S.found.includes(it.id)) S.found.push(it.id);
+  S.lastLineDay = lifeDay(now());   // 帰ってきた日は、この話がその日の一言
+  save();
+  render();
+  const w = $('piyoG');
+  w.classList.remove('breathe'); void w.offsetWidth; w.classList.add('arrive');
+  setTimeout(() => { w.classList.remove('arrive'); w.classList.add('breathe'); }, 1150);
+  $('gift').innerHTML = thumb(it, true);
+  $('gift').style.transition = 'opacity .4s'; $('gift').style.opacity = 1;
+  setTimeout(() => showNote(it.line, 7000), 900);
+  setTimeout(() => { $('gift').style.opacity = 0; render(); }, 7600);
+  return it.id;
+}
+function leave() {
+  const w = $('piyoG');
+  w.classList.remove('breathe', 'hop'); void w.offsetWidth; w.classList.add('leave');
+  setTimeout(() => { w.classList.remove('leave'); w.classList.add('breathe'); render(); }, 1450);
+}
+
+// ---------- 性格（14日で決まる・無料） ----------
+function leaning() {
+  const sleeps = S.logs.filter(l => l.type === 'sleep');
+  const days = Object.keys(S.moods).length || 1;
+  const late = sleeps.filter(l => { const h = new Date(l.t).getHours(); return h >= 1 && h < 4; }).length / Math.max(1, sleeps.length);
+  const heavy = Object.values(S.moods).filter(m => m === 2).length / days;
+  const early = sleeps.filter(l => { const h = new Date(l.t).getHours(); return h >= 20 && h < 23; }).length / Math.max(1, sleeps.length);
+  if (sleeps.length >= 3 && late >= 0.4) return 'night';
+  if (heavy >= 0.3) return 'worry';
+  if (sleeps.length >= 3 && early >= 0.5) return 'morning';
+  return 'calm';
+}
+const TYPES = {
+  night: { name: '夜行性', body: '夜ふかしの日が多かったから、ぴよは夜に目が冴える子になった。' },
+  worry: { name: '心配性', body: '重い日がつづいたから、ぴよはあなたの様子をよく見る子になった。' },
+  morning: { name: '朝型', body: '早く寝る日が多かったから、ぴよは朝が得意な子になった。' },
+  calm: { name: 'のんびり', body: 'あなたのペースに合わせて、ぴよはのんびりした子になった。' },
+};
+function checkType() {
+  const c = context();
+  if (S.typeShown || c.dayNo < 15 || isAway()) return;
+  S.type = leaning(); S.typeShown = true; save();
+  $('typeTitle').textContent = 'ぴよは「' + TYPES[S.type].name + '」になった';
+  $('typeBody').textContent = TYPES[S.type].body;
+  $('typeSheet').hidden = false;
+  render(); burst();
+}
+$('typeOk').onclick = () => { $('typeSheet').hidden = true; };
+
+// ---------- 描画 ----------
+function $(id) { return document.getElementById(id); }
+function phaseOf(h) { return h >= 5 && h < 10 ? 'morning' : h >= 10 && h < 16 ? 'day' : h >= 16 && h < 19 ? 'evening' : 'night'; }
+// 部屋の絵に重ねる色（乗算）。昼は素のまま
+const TINT = { morning: 'rgb(238,242,255)', day: 'rgb(255,255,255)', evening: 'rgb(255,214,182)', night: 'rgb(96,108,156)' };
+const WALL = { morning: '#e9e6e0', day: '#efebe4', evening: '#ead7c8', night: '#2b3350' };
+const hhmm = (t) => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+
+// ぴよの大きさと位置は部屋の実寸から決める
+function layout() {
+  const r = document.querySelector('.room').getBoundingClientRect();
+  const dayNo = S.first ? context().dayNo : 1;
+  const grow = 1 + Math.min(0.15, (dayNo - 1) * 0.005);
+  const size = Math.round(Math.min(r.width * 0.56, r.height * 0.46, 250) * grow);
+  const bottom = Math.round(r.height * 0.08);
+  const w = $('piyoWrap');
+  w.style.width = w.style.height = size + 'px';
+  w.style.bottom = bottom + 'px';
+  w.style.marginLeft = -size / 2 + 'px';
+  $('note').style.bottom = (bottom + size * (S.wear.hat ? 1.1 : 0.98)) + 'px';
+  for (const [slot, el] of [['hat', 'wearHat'], ['neck', 'wearNeck']]) {
+    const pos = WEAR_POS[S.wear[slot]];
+    if (!pos) continue;
+    $(el).style.width = Math.floor(size * pos[0]) + 'px';
+    $(el).style.left = Math.floor(size * (1 - pos[0]) / 2) + 'px';
+    $(el).style.top = Math.floor(size * pos[1]) + 'px';
+  }
+}
+
+function render() {
+  const c = context(), ph = phaseOf(c.hour);
+  $('tint').style.background = TINT[ph];
+  $('app').style.background = WALL[ph];
+  $('glow').style.opacity = ph === 'night' || ph === 'evening' ? 1 : 0;
+  document.body.classList.toggle('night', ph === 'night');
+  $('bg').classList.toggle('pastel', S.plus && S.wear.room === 'pastel');
+  const d = new Date(c.t);
+  $('date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '日月火水木金土'[d.getDay()] + '曜';
+  $('dayCount').textContent = S.first ? c.dayNo + '日目' : '';
+  for (const k of ['meal', 'bath', 'sleep']) $('act-' + k).classList.toggle('done', todayLogs(k).length > 0);
+
+  // おでかけ中
+  const away = isAway();
+  $('piyoWrap').style.opacity = away ? 0 : 1;
+  $('tag').hidden = !away;
+  if (away) $('tagText').textContent = hhmm(S.trip.ret) + 'ごろ帰る';
+
+  // 寝ているか。おでかけ7回で、ひとまわり大きい子になる
+  const lastSleep = todayLogs('sleep').slice(-1)[0];
+  const asleep = !away && !!lastSleep && lastSleep.t > (S.lastReturn || 0) && (c.hour >= 19 || c.hour < 7);
+  const src = asleep ? 'img/piyo_sleep.webp' : S.trips >= 7 ? 'img/piyo_child.webp' : 'img/piyo.webp';
+  if ($('body').getAttribute('src') !== src) $('body').setAttribute('src', src);
+  $('piyoG').dataset.asleep = asleep ? '1' : '';
+  $('zzz').style.opacity = asleep ? 1 : 0;
+
+  // 着ているもの（寝ているときは脱ぐ。ぴよふぃっとと同じ）
+  for (const [slot, el] of [['hat', 'wearHat'], ['neck', 'wearNeck']]) {
+    const it = S.wear[slot] && byId(S.wear[slot]);
+    $(el).hidden = !it || asleep;
+    if (it && $(el).getAttribute('src') !== 'img/' + it.img + '.webp') $(el).setAttribute('src', 'img/' + it.img + '.webp');
+  }
+  layout();
+}
+
+function hop() {
+  const g = $('piyoG');
+  g.classList.remove('breathe', 'hop'); void g.offsetWidth; g.classList.add('hop');
+  setTimeout(() => { g.classList.remove('hop'); g.classList.add('breathe'); }, 720);
+}
+function flash(id) {
+  const el = $(id); el.style.transition = 'opacity .3s'; el.style.opacity = 1;
+  setTimeout(() => { el.style.opacity = 0; }, 1800);
+}
+function burst() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const svg = $('burst'), cols = ['#f5c85b', '#f3b7ae', '#9ec5d8', '#4e7a8c', '#ffffff'];
+  let html = '';
+  for (let i = 0; i < 46; i++) {
+    const x = 180 + (Math.random() - 0.5) * 60, y = 430, dx = (Math.random() - 0.5) * 360, dy = -220 - Math.random() * 260;
+    const r = 3 + Math.random() * 4, col = cols[i % cols.length], dur = 1.1 + Math.random() * 0.7;
+    html += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}"><animateTransform attributeName="transform" type="translate" values="0 0; ${dx * 0.6} ${dy}; ${dx} ${dy + 380}" keyTimes="0;0.45;1" dur="${dur}s" fill="freeze"/><animate attributeName="opacity" values="1;1;0" keyTimes="0;0.7;1" dur="${dur}s" fill="freeze"/></circle>`;
+  }
+  svg.innerHTML = html;
+  setTimeout(() => { svg.innerHTML = ''; }, 2000);
+}
+
+// ---------- 操作 ----------
+function act(type) {
+  if (isAway()) { showNote(hhmm(S.trip.ret) + 'ごろ帰るって。', 2600); return; }
+  if (!S.first) S.first = lifeDay(now());
+  const already = todayLogs(type).length > 0;
+  if (!already) S.logs.push({ type, t: now() });
+  save();
+  hop();
+  if (type === 'meal') flash('bowl');
+  if (type === 'bath') flash('bubbles');
+  render();
+  const allDone = ['meal', 'bath', 'sleep'].every(k => todayLogs(k).length > 0);
+  if (!already && allDone) {
+    burst();
+    if (S.lastTripDay !== lifeDay(now()) && !S.trip) {
+      planTrip();
+      const goNow = now() >= S.trip.depart;
+      setTimeout(() => showNote(goNow ? 'ちょっと出かけてくる。' : 'あした、出かけてくる。', 3000), type === 'sleep' ? 0 : 400);
+      if (goNow) setTimeout(leave, 1600);
+    }
+  }
+  if (type === 'sleep' && !already) setTimeout(() => { $('moodSheet').hidden = false; }, 500);
+  else if (!allDone) maybeSpeak();
+}
+$('act-meal').onclick = () => act('meal');
+$('act-bath').onclick = () => act('bath');
+$('act-sleep').onclick = () => act('sleep');
+document.querySelectorAll('#moodSheet .choice').forEach(b => b.onclick = () => {
+  S.moods[lifeDay(now())] = Number(b.dataset.mood); save();
+  $('moodSheet').hidden = true;
+  render();
+});
+
+// ---------- 着るもの・ひろったもの ----------
+function renderCloset() {
+  const wearables = ITEMS.filter(i => i.kind !== 'thing');
+  $('wearGrid').innerHTML = wearables.map(i => {
+    const owned = i.plus ? S.plus : S.found.includes(i.id);
+    const on = S.wear[i.kind] === i.id;
+    if (!owned && !i.plus) return `<div class="cell empty" aria-label="まだない"></div>`;
+    return `<button class="cell${on ? ' on' : ''}" data-wear="${i.id}" aria-label="${i.name}">${thumb(i)}${!owned ? '<svg class="lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>' : ''}</button>`;
+  }).join('');
+  const things = FREE.filter(i => i.kind === 'thing');
+  $('foundCount').textContent = S.found.length + ' / ' + FREE.length;
+  $('foundGrid').innerHTML = things.map(i => S.found.includes(i.id)
+    ? `<div class="cell" aria-label="${i.name}"><svg viewBox="-15 -15 30 30">${i.svg}</svg><span class="nm">${i.name}</span></div>`
+    : `<div class="cell empty"></div>`).join('');
+}
+$('openCloset').onclick = () => { renderCloset(); $('closetSheet').hidden = false; };
+$('closetClose').onclick = () => { $('closetSheet').hidden = true; };
+$('wearGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-wear]'); if (!b) return;
+  const it = byId(b.dataset.wear);
+  if (it.plus && !S.plus) { $('plusSheet').hidden = false; return; }
+  S.wear[it.kind] = S.wear[it.kind] === it.id ? null : it.id;
+  save(); renderCloset(); render(); hop();
+});
+// 試作なので決済はしない。押すと有料の状態になるだけ
+$('plusYear').onclick = $('plusMonth').onclick = () => { S.plus = true; save(); $('plusSheet').hidden = true; renderCloset(); burst(); };
+$('plusNo').onclick = () => { $('plusSheet').hidden = true; $('hardSheet').hidden = false; S.hardShown = true; save(); };
+$('hardOk').onclick = () => { $('hardSheet').hidden = true; };
+
+// ---------- 試す用（?dev） ----------
+function simulate(days, pattern) {
+  const base = now();
+  if (!S.first) S.first = lifeDay(base);
+  for (let i = 0; i < days; i++) {
+    const day0 = new Date(base + i * DAY); day0.setHours(0, 0, 0, 0);
+    const t = (h, m = 0) => day0.getTime() + (h * 60 + m) * 60000;
+    S.logs.push({ type: 'meal', t: t(pattern === 'early' ? 7 : 12) });
+    if (pattern !== 'heavy' || i % 2) S.logs.push({ type: 'bath', t: t(21) });
+    const sleepAt = pattern === 'night' ? t(26, 30) : pattern === 'early' ? t(22) : t(24, 30);
+    S.logs.push({ type: 'sleep', t: sleepAt });
+    S.moods[lifeDay(sleepAt)] = pattern === 'heavy' ? (i % 3 === 0 ? 1 : 2) : 0;
+  }
+  S.offset += days * DAY;
+}
+if (DEV) {
+  $('dev').hidden = false;
+  $('dev').addEventListener('click', (e) => {
+    const k = e.target.dataset.dev; if (!k) return;
+    if (k === 'hour') S.offset += HOUR;
+    if (k === 'six') S.offset += 6 * HOUR;
+    if (k === 'day') S.offset += DAY;
+    if (k === 'night14') simulate(14, 'night');
+    if (k === 'heavy14') simulate(14, 'heavy');
+    if (k === 'early14') simulate(14, 'early');
+    if (k === 'away3') S.offset += 3 * DAY;
+    if (k === 'trips') { for (let i = 0; i < 8; i++) { const it = FREE.filter(x => !S.found.includes(x.id))[0]; if (it) S.found.push(it.id); S.trips++; } }
+    if (k === 'reset') { const off = S.offset; S = blank(); S.offset = off; }
+    save(); tick();
+  });
+}
+
+// ---------- 起動 ----------
+function tick() { render(); if (!checkReturn()) { maybeSpeak(); } checkType(); }
+render();
+setTimeout(tick, 600);
+setInterval(() => { render(); checkReturn(); }, 30000);
+addEventListener('resize', layout);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick(); });
+window.__booted = true;
+window.__M = { get S() { return S; }, context, pickLine, leaning, act, render, simulate, LINES, ITEMS, FREE, save, blank, isAway, checkReturn, tick, planTrip, setS(v) { S = v; } };
+})();
+</script>
+</body>
+</html>
