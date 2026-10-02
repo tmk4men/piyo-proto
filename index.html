@@ -3,84 +3,174 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3eee6">
 <title>ぴよ</title>
 <style>
   :root{
-    --ink:#2a2f3b; --ink-soft:#6b7280; --accent:#4e7a8c; --accent-ink:#ffffff; --btn:#ffffff; --line:#d6dde2;
+    --ink:#3b3330; --ink-soft:#7d726b; --accent:#e58f5b; --card:#fffdf9; --line:#eadfd3; --bg:#f3eee6;
+    --energy:#f5b942; --good:#7fb77e;
   }
   [hidden]{display:none!important}
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:#cfd8de;color:var(--ink);
+  html,body{margin:0;height:100%;background:#e8e1d6;color:var(--ink);
     font-family:"Hiragino Maru Gothic ProN","Zen Maru Gothic","Kosugi Maru","Hiragino Sans",sans-serif;
     -webkit-tap-highlight-color:transparent}
-  #app{position:relative;max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;
-    background:#dde4e9;overflow:hidden;transition:background .8s}
-  .top{display:flex;justify-content:space-between;align-items:center;padding:14px 14px 4px 22px;font-size:15px;color:var(--ink-soft)}
-  .top .right{display:flex;align-items:center;gap:6px}
-  .top .day{font-size:13px;letter-spacing:.06em}
-  .iconbtn{width:44px;height:44px;border:none;background:none;border-radius:12px;display:grid;place-items:center;color:inherit;cursor:pointer;padding:0}
-  .iconbtn svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  .iconbtn:focus-visible{outline:3px solid var(--accent)}
-  body.night .top{color:#aeb6c8}
-  .room{position:relative;flex:1;min-height:0;overflow:hidden}
-  .bg{position:absolute;inset:0;background:url(img/room2.webp) center bottom/cover no-repeat;transition:filter .8s}
-  .bg.pastel{background-image:url(img/room.webp)}
+  button{font:inherit;color:inherit}
+  #app{position:relative;max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+  .top{display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 8px 20px;font-size:14px;color:var(--ink-soft);flex:0 0 auto}
+  .stars{display:flex;align-items:center;gap:5px;font-weight:700;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:5px 12px 5px 9px}
+  .stars svg{width:16px;height:16px}
+
+  .view{flex:1;min-height:0;display:flex;flex-direction:column}
+  .tabs{flex:0 0 auto;display:flex;justify-content:space-around;background:var(--card);border-top:1.5px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+  .tab{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--ink-soft);padding:6px 0;cursor:pointer;min-height:48px}
+  .tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tab.on{color:var(--accent);font-weight:700}
+
+  /* 部屋 */
+  .room{position:relative;flex:0 0 44%;min-height:250px;overflow:hidden;border-radius:0 0 26px 26px}
+  @media (max-height:700px){.room{flex-basis:36%;min-height:190px}.tools{margin-top:10px}.tool{padding:9px 4px 8px}}
+  .bg{position:absolute;inset:0;background:url(img/room2.webp?v=202610022215) center 80%/cover no-repeat}
+  .bg.pastel{background-image:url(img/room.webp?v=202610022215)}
   .tint{position:absolute;inset:0;mix-blend-mode:multiply;pointer-events:none;transition:background .8s}
   .glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 40% at 50% 78%,rgba(255,214,140,.32),transparent 70%);opacity:0;transition:opacity .8s}
-  #piyoWrap{position:absolute;left:50%;transition:opacity .6s}
+  #piyoWrap{position:absolute;left:50%;transition:opacity .6s, transform 3.2s cubic-bezier(.4,0,.2,1);touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none;outline:none}
+  #piyoDrag{position:absolute;inset:0}
+  #piyoDrag.release{transition:transform .42s cubic-bezier(.34,1.7,.64,1)}
   #piyoG{position:relative;width:100%;height:100%;transform-origin:50% 100%}
   #piyoG img{position:absolute;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
   #body{left:0;top:0;width:100%;height:100%}
-  .fx{position:absolute;pointer-events:none;opacity:0;transition:opacity .3s}
-  .fx svg{width:100%;height:100%;display:block;overflow:visible}
-  .note{position:absolute;left:50%;bottom:62%;width:max-content;transform:translateX(-50%) rotate(-1.5deg);background:#fffdf7;
-    padding:12px 18px 13px;border-radius:4px;box-shadow:0 6px 18px rgba(30,40,60,.14);font-size:17px;line-height:1.6;
-    max-width:84%;text-align:center;text-wrap:balance;opacity:0;transition:opacity .6s, transform .6s;pointer-events:none}
-  .note.show{opacity:1;transform:translateX(-50%) rotate(-1.5deg) translateY(4px)}
-  .note::after{content:"";position:absolute;left:50%;bottom:-7px;width:14px;height:14px;background:#fffdf7;transform:translateX(-50%) rotate(45deg)}
-  .tag{position:absolute;left:50%;bottom:16%;transform:translateX(-50%) rotate(2deg);background:#fff;border:1.5px solid #d9cdbb;
-    border-radius:6px;padding:9px 16px;font-size:15px;color:#5b5346;box-shadow:0 4px 10px rgba(0,0,0,.08);white-space:nowrap}
-  .tag b{display:block;font-size:12px;font-weight:400;color:#8a8070;margin-bottom:2px}
-  .acts{display:flex;justify-content:center;gap:26px;padding:18px 0 calc(26px + env(safe-area-inset-bottom))}
-  .act{width:78px;height:78px;border-radius:50%;border:1.5px solid var(--line);background:var(--btn);display:grid;place-items:center;
-    cursor:pointer;transition:transform .15s, background .3s, border-color .3s;padding:0;color:var(--ink)}
-  .act:active{transform:scale(.92)}
-  .act:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
-  .act svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .act.done{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-  body.night .act:not(.done){background:#39415e;border-color:#4a5374;color:#dfe4f0}
-  .sheet{position:absolute;inset:0;background:rgba(20,24,36,.38);display:flex;align-items:flex-end;z-index:5}
-  .sheet .panel{width:100%;max-height:86%;overflow:auto;background:#fbfbfa;border-radius:22px 22px 0 0;padding:24px 22px calc(26px + env(safe-area-inset-bottom));
-    animation:up .35s cubic-bezier(.2,.9,.3,1)}
+  .nametag{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);background:rgba(255,255,255,.85);border-radius:999px;padding:2px 12px;font-size:12px;font-weight:700;white-space:nowrap;pointer-events:none}
+  .heart{position:absolute;left:50%;top:22%;width:24px;height:24px;color:#ff6b98;pointer-events:none;filter:drop-shadow(0 2px 4px rgba(255,120,160,.45));animation:heart .9s ease-out forwards}
+  @keyframes heart{0%{transform:translate(calc(-50% + var(--dx)),-10px) scale(.6);opacity:1}70%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),-74px) scale(1.2);opacity:0}}
+  .sweat{position:absolute;right:4%;top:6%;width:20px;height:26px;opacity:0;transition:opacity .2s;pointer-events:none}
+  #piyoWrap.dragging .sweat{opacity:1}
+  .zzz{position:absolute;left:78%;top:-4%;width:24%;height:24%;pointer-events:none;opacity:0;transition:opacity .3s}
+  .note{position:absolute;left:50%;width:max-content;max-width:86%;transform:translateX(-50%);background:#fff;padding:10px 16px;border-radius:16px;
+    box-shadow:0 6px 18px rgba(60,40,30,.14);font-size:15px;line-height:1.6;text-align:center;text-wrap:balance;opacity:0;transition:opacity .4s;pointer-events:none;z-index:2}
+  .note.show{opacity:1}
+  .note::after{content:"";position:absolute;left:50%;bottom:-6px;width:12px;height:12px;background:#fff;transform:translateX(-50%) rotate(45deg)}
+  .away{position:absolute;left:50%;bottom:18%;transform:translateX(-50%) rotate(-2deg);background:#fff;border:1.5px solid #e2d3bf;border-radius:10px;padding:10px 18px;text-align:center;font-size:15px;box-shadow:0 4px 10px rgba(0,0,0,.08);white-space:nowrap}
+  .away b{display:block;font-size:12px;font-weight:400;color:var(--ink-soft);margin-bottom:2px}
+
+  /* ホームの下半分 */
+  .scroll{flex:1;min-height:0;overflow:auto;padding:14px 16px 24px;-webkit-overflow-scrolling:touch}
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:14px 16px}
+  .energy .lbl{font-size:13px;color:var(--ink-soft);margin-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+  .bar{height:12px;border-radius:99px;background:#f1e7da;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f7cf6d,var(--energy));border-radius:99px;transition:width .5s cubic-bezier(.3,1.3,.5,1)}
+  .go{margin-top:12px;width:100%;border:none;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:16px;padding:14px;cursor:pointer;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.02)}}
+  .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 4px}
+  .tool{border:1.5px solid var(--line);background:var(--card);border-radius:16px;padding:12px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;cursor:pointer;position:relative}
+  .tool svg{width:26px;height:26px;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tool.did::after{content:"";position:absolute;right:8px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--good)}
+  .sec{display:flex;justify-content:space-between;align-items:baseline;margin:18px 2px 8px}
+  .sec h2{margin:0;font-size:16px}
+  .link{border:none;background:none;color:var(--accent);font-size:14px;cursor:pointer;padding:6px 4px}
+  .goals{display:grid;gap:8px}
+  .goal{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;cursor:pointer;text-align:left;width:100%;min-height:54px;transition:background .3s}
+  .goal .ck{flex:0 0 26px;height:26px;border-radius:50%;border:2px solid #d8c8b6;display:grid;place-items:center;transition:all .25s}
+  .goal .ck svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+  .goal.done{background:#f6f9f1}
+  .goal.done .ck{background:var(--good);border-color:var(--good)}
+  .goal.done .ck svg{opacity:1}
+  .goal.done .tx{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:#b9c9b0}
+  .goal .tx{flex:1;font-size:15px;line-height:1.4;word-break:break-word}
+  .goal .rm{flex:0 0 auto;border:none;background:#f3e3d6;color:#a0705a;border-radius:10px;padding:8px 12px;font-size:13px;cursor:pointer}
+  .empty{color:var(--ink-soft);font-size:14px;text-align:center;padding:14px;line-height:1.7}
+  .plusone{position:fixed;z-index:20;font-weight:700;color:#d99a25;pointer-events:none;animation:plus 1s ease-out forwards;font-size:15px}
+  @keyframes plus{to{transform:translateY(-34px);opacity:0}}
+
+  /* シート */
+  .sheet{position:absolute;inset:0;background:rgba(40,30,25,.38);display:flex;align-items:flex-end;z-index:10}
+  .sheet .panel{width:100%;max-height:92%;overflow:auto;background:#fffcf8;border-radius:24px 24px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));animation:up .32s cubic-bezier(.2,.9,.3,1)}
   @keyframes up{from{transform:translateY(100%)}to{transform:none}}
-  .sheet h2{margin:0 0 16px;font-size:19px;font-weight:700;text-align:center}
-  .sheet h3{margin:20px 0 10px;font-size:14px;font-weight:700;color:var(--ink-soft)}
-  .sheet p{margin:0 0 18px;font-size:15px;line-height:1.75;color:#4b5160;text-align:center}
+  .sheet h2{margin:0 0 6px;font-size:19px;text-align:center}
+  .sheet .sub{margin:0 0 18px;font-size:14px;line-height:1.7;color:var(--ink-soft);text-align:center}
+  .sheet h3{margin:18px 0 8px;font-size:13px;color:var(--ink-soft)}
   .choices{display:grid;gap:10px}
-  .choice{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:15px;font:inherit;font-size:16px;color:var(--ink);cursor:pointer}
-  .choice.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .choice{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:14px;font-size:16px;cursor:pointer;text-align:center}
+  .choice.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
   .choice.quiet{border:none;background:none;color:var(--ink-soft);font-size:14px}
-  .choice small{display:block;font-size:12px;opacity:.85;margin-top:3px}
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .cell{position:relative;aspect-ratio:1;border:1.5px solid var(--line);border-radius:14px;background:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
-  .cell svg{width:70%;height:70%}
-  .cell.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
-  .cell.empty{background:#f1f3f4;cursor:default}
-  .cell .lock{position:absolute;right:5px;top:5px;width:16px;height:16px;fill:none;stroke:#8a93a0;stroke-width:1.8}
-  .cell .nm{position:absolute;bottom:3px;left:0;right:0;font-size:10px;color:var(--ink-soft);text-align:center}
-  .count{font-weight:400;margin-left:6px}
-  .dev{position:absolute;right:8px;top:62px;z-index:3;display:flex;flex-direction:column;gap:6px;font-family:-apple-system,sans-serif}
-  .dev button{font-size:11px;padding:6px 8px;border-radius:8px;border:1px solid #9aa4b0;background:rgba(255,255,255,.9);cursor:pointer}
-  .burst{position:absolute;inset:0;pointer-events:none;z-index:4}
-  .breathe{animation:breathe 3.2s ease-in-out infinite}
-  @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}
+  .choice small{display:block;font-size:12px;opacity:.85;margin-top:3px;font-weight:400}
+  .choice:disabled{opacity:.45}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-size:14px;cursor:pointer}
+  .chip.on{background:#fde9dc;border-color:var(--accent);color:#a4532b}
+  .chip.has{opacity:.4;pointer-events:none}
+  input[type=text],textarea{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;font:inherit;font-size:16px;background:#fff;color:var(--ink);outline:none}
+  input[type=text]:focus,textarea:focus{border-color:var(--accent)}
+  textarea{min-height:110px;resize:vertical;line-height:1.6}
+  .row{display:flex;gap:8px}
+  .row input{flex:1;min-width:0}
+  .row button{flex:0 0 auto}
+  .faces{display:flex;justify-content:space-between;gap:6px;margin-bottom:6px}
+  .face{flex:1;min-width:0;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:8px 0 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--ink-soft)}
+  .face svg{width:36px;height:36px}
+  .face.on{border-color:var(--accent);background:#fde9dc;color:#a4532b}
+  .steps{display:flex;justify-content:center;gap:6px;margin-bottom:16px}
+  .steps i{width:7px;height:7px;border-radius:50%;background:#e4d6c6}
+  .steps i.on{background:var(--accent)}
+  .hero{display:block;width:120px;height:120px;margin:0 auto 10px}
+
+  /* 冒険の話 */
+  .story-img{height:170px;border-radius:16px;background:center/cover no-repeat;position:relative;margin-bottom:14px}
+  .story-img img{position:absolute;width:86px;height:86px;left:50%;bottom:-6px;margin-left:-43px}
+  .story{font-size:16px;line-height:1.9;margin:0 0 6px}
+  .found{display:flex;align-items:center;gap:10px;background:#fdf6ea;border-radius:14px;padding:10px 14px;margin:12px 0;font-size:14px;line-height:1.5}
+  .found svg{width:34px;height:34px;flex:0 0 auto}
+  .q{font-weight:700;font-size:15px;margin:16px 0 8px;line-height:1.6}
+
+  /* 深呼吸 */
+  .breath{display:flex;flex-direction:column;align-items:center;padding:10px 0 4px}
+  .breath .ring{width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,#fdf1dc 55%,#f8e2c0);display:grid;place-items:center;transform:scale(.72);transition:transform 4s ease-in-out}
+  .breath .ring img{width:120px;height:120px}
+  .breath .say{font-size:20px;font-weight:700;margin:18px 0 4px;min-height:30px}
+  .breath .cnt{font-size:13px;color:var(--ink-soft);min-height:18px}
+
+  /* きせかえ・きろく */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .item{position:relative;border:1.5px solid var(--line);border-radius:16px;background:var(--card);padding:10px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:13px}
+  .item .pic{width:100%;aspect-ratio:1;display:grid;place-items:center}
+  .item .pic img{max-width:78%;max-height:78%}
+  .item .pic img.roomimg{max-width:100%;max-height:100%;border-radius:10px;object-fit:cover;width:100%;height:100%}
+  .item .price{font-size:12px;color:var(--ink-soft);display:flex;align-items:center;gap:3px;min-height:16px}
+  .item .price svg{width:12px;height:12px}
+  .item.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+  .item .lock{position:absolute;right:8px;top:8px;width:16px;height:16px;fill:none;stroke:#9a8c80;stroke-width:1.8}
+  .things{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .thing{aspect-ratio:1;border:1.5px solid var(--line);border-radius:12px;background:var(--card);display:grid;place-items:center}
+  .thing svg{width:60%;height:60%}
+  .thing.no{background:#efe8de;border-style:dashed}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .stat{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center}
+  .stat b{display:block;font-size:22px}
+  .stat span{font-size:12px;color:var(--ink-soft)}
+  .week{display:flex;justify-content:space-between;gap:4px}
+  .wd{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft)}
+  .wd i{width:30px;height:30px;border-radius:50%;background:#efe8de;display:block}
+  .entry{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px}
+  .entry .d{font-size:12px;color:var(--ink-soft)}
+  .entry .p{font-size:13px;color:var(--ink-soft);margin:4px 0}
+  .entry .a{font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+
+  .dev{position:absolute;right:8px;top:56px;z-index:9;display:flex;flex-direction:column;gap:5px;font-family:-apple-system,sans-serif}
+  .dev button{font-size:11px;padding:5px 8px;border-radius:8px;border:1px solid #b6a89a;background:rgba(255,255,255,.92);cursor:pointer}
+  .burst{position:absolute;inset:0;pointer-events:none;z-index:15}
+
+  .breathe{animation:breathe 2.6s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  #piyoG[data-asleep="1"].breathe{animation:none}
+  .pet{animation:pet .55s ease-in-out}
+  @keyframes pet{0%,100%{transform:translate(0,0) rotate(0)}15%{transform:translate(-2px,-1px) rotate(-2deg)}30%{transform:translate(2px,-1px) rotate(2deg)}45%{transform:translate(-2px,0) rotate(-1.5deg)}60%{transform:translate(2px,0) rotate(1.5deg)}75%{transform:translate(-1px,-1px) rotate(-1deg)}}
   .hop{animation:hop .7s cubic-bezier(.3,1.6,.5,1)}
-  @keyframes hop{0%{transform:translateY(0) scale(1.08,.9)}40%{transform:translateY(-34px) scale(.94,1.08)}75%{transform:translateY(0) scale(1.1,.9)}100%{transform:none}}
+  @keyframes hop{0%{transform:translateY(0) scale(1.08,.9)}40%{transform:translateY(-30px) scale(.94,1.08)}75%{transform:translateY(0) scale(1.1,.9)}100%{transform:none}}
   .leave{animation:leave 1.4s ease-in forwards}
   @keyframes leave{0%{transform:none}30%{transform:translateY(-20px)}100%{transform:translate(260px,-6px) scale(.6)}}
   .arrive{animation:arrive 1.1s cubic-bezier(.2,1.2,.4,1)}
   @keyframes arrive{0%{transform:translate(-260px,-6px) scale(.6)}70%{transform:translate(0,-18px)}100%{transform:none}}
-  @media (prefers-reduced-motion: reduce){.breathe,.hop,.leave,.arrive{animation:none}.note{transition:none}.sheet .panel{animation:none}}
+  @media (prefers-reduced-motion: reduce){.breathe,.hop,.leave,.arrive,.pet,.go{animation:none}#piyoWrap{transition:opacity .6s}.sheet .panel{animation:none}.breath .ring{transition:none}}
 </style>
 <script>
   window.__booted = false;
@@ -98,77 +188,184 @@
 <div id="app">
   <header class="top">
     <span id="date"></span>
-    <span class="right">
-      <span class="day" id="dayCount"></span>
-      <button class="iconbtn" id="openCloset" aria-label="ぴよの服とひろったもの">
-        <svg viewBox="0 0 24 24"><path d="M12 6.5a2 2 0 1 1 2-2"/><path d="M12 6.5v1.2L3.5 14a1.3 1.3 0 0 0 .8 2.4h15.4a1.3 1.3 0 0 0 .8-2.4L12 7.7"/></svg>
-      </button>
-    </span>
+    <span class="stars" id="starsPill" aria-label="ほし"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="#f5b942" stroke="#d99a25" stroke-width="1.2" stroke-linejoin="round"/></svg><span id="stars">0</span></span>
   </header>
-  <section class="room">
-    <div class="bg" id="bg"></div>
-    <div class="tint" id="tint"></div>
-    <div class="glow" id="glow"></div>
-    <div id="piyoWrap" aria-label="ぴよ" role="img">
-      <div id="piyoG" class="breathe">
-        <img id="body" src="img/piyo.webp" alt="">
-        <img id="wearNeck" alt="" hidden>
-        <img id="wearHat" alt="" hidden>
+
+  <!-- ホーム -->
+  <main class="view" id="v-home">
+    <section class="room" id="room">
+      <div class="bg" id="bg"></div>
+      <div class="tint" id="tint"></div>
+      <div class="glow" id="glow"></div>
+      <div id="piyoWrap" aria-label="なでる" role="button" tabindex="0">
+        <div id="piyoDrag">
+          <div id="piyoG" class="breathe">
+            <img id="body" src="img/piyo.webp?v=202610022215" alt="">
+            <img id="wearNeck" alt="" hidden>
+            <img id="wearHat" alt="" hidden>
+          </div>
+          <svg class="sweat" viewBox="0 0 20 26"><path d="M10 1C6 8 2 12 2 17a8 8 0 0 0 16 0c0-5-4-9-8-16z" fill="#9fd3ef" stroke="#6fb4d8" stroke-width="1.5"/><path d="M6 17a4 4 0 0 0 3 4" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <svg class="zzz" id="zzz" viewBox="0 0 30 30" fill="none" stroke="#c8cfe4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22 h10 l-10 10 h10"/><path d="M16 4 h8 l-8 8 h8"/></svg>
+        <span class="nametag" id="nametag">ぴよ</span>
       </div>
-      <div class="fx" id="bowl" style="left:88%;bottom:0;width:30%;height:16%"><svg viewBox="-24 -14 48 26"><path d="M-22 -6 q22 22 44 0 z" fill="#f7f7f5" stroke="#b9b0a3" stroke-width="2"/><circle cx="-9" cy="-8" r="4" fill="#e7c48a"/><circle cx="0" cy="-10" r="4" fill="#e7c48a"/><circle cx="9" cy="-8" r="4" fill="#e7c48a"/></svg></div>
-      <div class="fx" id="bubbles" style="left:-10%;top:0;width:120%;height:80%"><svg viewBox="0 0 120 80" fill="rgba(255,255,255,.5)" stroke="#9ec5d8" stroke-width="1.4"><circle cx="12" cy="50" r="5"/><circle cx="108" cy="40" r="7"/><circle cx="98" cy="14" r="4"/><circle cx="20" cy="18" r="4"/></svg></div>
-      <div class="fx" id="zzz" style="left:78%;top:-4%;width:24%;height:24%"><svg viewBox="0 0 30 30" fill="none" stroke="#c8cfe4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 22 h10 l-10 10 h10"/><path d="M16 4 h8 l-8 8 h8"/></svg></div>
-      <div class="fx" id="gift" style="left:96%;bottom:2%;width:22%;height:22%"></div>
+      <div class="note" id="note" role="status" aria-live="polite"><span id="noteText"></span></div>
+      <div class="away" id="awayTag" hidden><b>冒険中</b><span id="awayText"></span></div>
+    </section>
+    <div class="scroll" id="homeScroll">
+      <div class="card energy">
+        <div class="lbl"><span id="energyLbl">冒険のげんき</span><span id="energyNum">0 / 5</span></div>
+        <div class="bar"><i id="energyBar"></i></div>
+        <button class="go" id="goBtn" hidden>冒険に送り出す</button>
+      </div>
+      <div class="tools">
+        <button class="tool" id="t-mood"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/><path d="M9 9.5h.01M15 9.5h.01"/></svg>気分</button>
+        <button class="tool" id="t-note"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h8M8 18h5"/></svg>ふりかえり</button>
+        <button class="tool" id="t-breath"><svg viewBox="0 0 24 24"><path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/></svg>深呼吸</button>
+      </div>
+      <div class="sec"><h2>きょうの目標</h2><span><button class="link" id="editGoals">へんしゅう</button><button class="link" id="addGoal">＋ たす</button></span></div>
+      <div class="goals" id="goals"></div>
     </div>
-    <div class="note" id="note" role="status" aria-live="polite"><span id="noteText"></span></div>
-    <div class="tag" id="tag" hidden><b>おでかけ中</b><span id="tagText"></span></div>
-  </section>
-  <nav class="acts" aria-label="きょうの三つ">
-    <button class="act" id="act-meal" aria-label="ごはん">
-      <svg viewBox="0 0 32 32"><path d="M5 15h22a11 11 0 0 1-22 0z"/><path d="M9 26h14"/><path d="M12 10c0-2 2-2 2-4M17 10c0-2 2-2 2-4"/></svg>
-    </button>
-    <button class="act" id="act-bath" aria-label="おふろ">
-      <svg viewBox="0 0 32 32"><path d="M16 4c4 6 8 10 8 15a8 8 0 0 1-16 0c0-5 4-9 8-15z"/><path d="M12.5 19.5a3.5 3.5 0 0 0 3.5 3.5"/></svg>
-    </button>
-    <button class="act" id="act-sleep" aria-label="ねる">
-      <svg viewBox="0 0 32 32"><path d="M20 5a11 11 0 1 0 7 17A9 9 0 0 1 20 5z"/></svg>
-    </button>
+  </main>
+
+  <!-- きせかえ -->
+  <main class="view" id="v-closet" hidden>
+    <div class="scroll">
+      <div class="sec" style="margin-top:4px"><h2>きせかえ</h2></div>
+      <p style="margin:0 0 12px;font-size:13px;color:var(--ink-soft);line-height:1.7">ほしは、目標・気分・ふりかえり・冒険でたまります。</p>
+      <div class="grid" id="shopGrid"></div>
+      <div class="sec"><h2>部屋</h2></div>
+      <div class="grid" id="roomGrid"></div>
+    </div>
+  </main>
+
+  <!-- きろく -->
+  <main class="view" id="v-log" hidden>
+    <div class="scroll">
+      <div class="stats">
+        <div class="stat"><b id="stDays">1</b><span>いっしょの日</span></div>
+        <div class="stat"><b id="stTrips">0</b><span>冒険</span></div>
+        <div class="stat"><b id="stGoals">0</b><span>できた目標</span></div>
+      </div>
+      <div class="sec"><h2>この7日の気分</h2></div>
+      <div class="card"><div class="week" id="week"></div></div>
+      <div class="sec"><h2>ひろったもの <span id="foundCount" style="font-size:13px;color:var(--ink-soft);font-weight:400"></span></h2></div>
+      <div class="things" id="things"></div>
+      <div class="sec"><h2>ふりかえり</h2></div>
+      <div id="entries"></div>
+    </div>
+  </main>
+
+  <nav class="tabs" aria-label="画面">
+    <button class="tab on" data-tab="home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></svg>ホーム</button>
+    <button class="tab" data-tab="closet"><svg viewBox="0 0 24 24"><path d="M12 6.5a2 2 0 1 1 2-2"/><path d="M12 6.5v1.2L3.5 14a1.3 1.3 0 0 0 .8 2.4h15.4a1.3 1.3 0 0 0 .8-2.4L12 7.7"/></svg>きせかえ</button>
+    <button class="tab" data-tab="log"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>きろく</button>
   </nav>
 
-  <div class="sheet" id="moodSheet" hidden>
+  <!-- はじめて -->
+  <div class="sheet" id="onboard" hidden>
     <div class="panel">
-      <h2>きょうは、どんな日だった？</h2>
-      <div class="choices">
-        <button class="choice" data-mood="0">ふつう</button>
-        <button class="choice" data-mood="1">すこし重い</button>
-        <button class="choice" data-mood="2">重い</button>
+      <div class="steps"><i></i><i></i><i></i></div>
+      <div data-step="0">
+        <img class="hero" src="img/piyo.webp?v=202610022215" alt="">
+        <h2>はじめまして</h2>
+        <p class="sub">この子といっしょに、毎日すこしずつ<br>自分の世話をしていくアプリです。<br>この子に名前をつけてください。</p>
+        <input type="text" id="obName" maxlength="10" placeholder="ぴよ" autocomplete="off">
+        <div class="choices" style="margin-top:14px"><button class="choice primary" id="obNext0">つぎへ</button></div>
+      </div>
+      <div data-step="1" hidden>
+        <img class="hero" src="img/piyo.webp?v=202610022215" alt="">
+        <h2 id="obQ1">あなたのことは、なんて呼べばいい？</h2>
+        <p class="sub">この子が、あなたをこう呼びます。</p>
+        <input type="text" id="obYou" maxlength="10" placeholder="あなた" autocomplete="off">
+        <div class="choices" style="margin-top:14px"><button class="choice primary" id="obNext1">つぎへ</button></div>
+      </div>
+      <div data-step="2" hidden>
+        <h2>どんなことを手伝ってほしい？</h2>
+        <p class="sub">いくつ選んでもいいです。<br>目標はあとから自由に変えられます。</p>
+        <div class="chips" id="obHelps"></div>
+        <div class="choices" style="margin-top:18px"><button class="choice primary" id="obDone">はじめる</button></div>
       </div>
     </div>
   </div>
 
-  <div class="sheet" id="typeSheet" hidden>
+  <!-- 目標をたす -->
+  <div class="sheet" id="addSheet" hidden>
     <div class="panel">
-      <h2 id="typeTitle"></h2>
-      <p id="typeBody"></p>
-      <div class="choices"><button class="choice primary" id="typeOk">見る</button></div>
+      <h2>目標をたす</h2>
+      <p class="sub">小さいほど続きます。「水を一杯」くらいで十分。</p>
+      <div class="row"><input type="text" id="goalInput" maxlength="24" placeholder="自分で書く" autocomplete="off"><button class="choice primary" id="goalSave" style="padding:0 18px">たす</button></div>
+      <div id="suggest"></div>
+      <div class="choices" style="margin-top:18px"><button class="choice quiet" id="addClose">とじる</button></div>
     </div>
   </div>
 
-  <div class="sheet" id="closetSheet" hidden>
+  <!-- 気分 -->
+  <div class="sheet" id="moodSheet" hidden>
     <div class="panel">
-      <h2>ぴよのもの</h2>
-      <h3>着る・部屋</h3>
-      <div class="grid" id="wearGrid"></div>
-      <h3>ひろったもの<span class="count" id="foundCount"></span></h3>
-      <div class="grid" id="foundGrid"></div>
-      <div class="choices" style="margin-top:18px"><button class="choice quiet" id="closetClose">とじる</button></div>
+      <h2>いま、どんな気分？</h2>
+      <p class="sub">正直でいい。だれにも見せません。</p>
+      <div class="faces" id="faces"></div>
+      <h3>近いことば（なくてもいい）</h3>
+      <div class="chips" id="moodTags"></div>
+      <div class="choices" style="margin-top:18px">
+        <button class="choice primary" id="moodSave" disabled>きろくする</button>
+        <button class="choice quiet" id="moodClose">とじる</button>
+      </div>
     </div>
   </div>
 
+  <!-- ふりかえり -->
+  <div class="sheet" id="noteSheet" hidden>
+    <div class="panel">
+      <h2>ふりかえり</h2>
+      <p class="q" id="notePrompt" style="text-align:center"></p>
+      <textarea id="noteInput" maxlength="1000" placeholder="一言でもいい"></textarea>
+      <div class="choices" style="margin-top:14px">
+        <button class="choice primary" id="noteSave" disabled>のこす</button>
+        <button class="choice" id="noteOther">ちがう質問にする</button>
+        <button class="choice quiet" id="noteClose">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 深呼吸 -->
+  <div class="sheet" id="breathSheet" hidden>
+    <div class="panel">
+      <h2>いっしょに深呼吸</h2>
+      <div class="breath">
+        <div class="ring" id="ring"><img src="img/piyo.webp?v=202610022215" alt=""></div>
+        <div class="say" id="breathSay">はじめる？</div>
+        <div class="cnt" id="breathCnt">3回だけ。40秒くらい</div>
+      </div>
+      <div class="choices" style="margin-top:14px">
+        <button class="choice primary" id="breathStart">はじめる</button>
+        <button class="choice quiet" id="breathClose">やめる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 冒険の話 -->
+  <div class="sheet" id="storySheet" hidden>
+    <div class="panel">
+      <div class="story-img" id="storyImg"><img id="storyPiyo" src="img/piyo.webp?v=202610022215" alt=""></div>
+      <h2 id="storyTitle"></h2>
+      <p class="story" id="storyText"></p>
+      <div class="found" id="storyFound"></div>
+      <p class="q" id="storyQ"></p>
+      <textarea id="storyInput" maxlength="1000" placeholder="答えなくてもいい"></textarea>
+      <div class="choices" style="margin-top:14px">
+        <button class="choice primary" id="storySave">こたえる</button>
+        <button class="choice quiet" id="storyClose">あとで</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 有料 -->
   <div class="sheet" id="plusSheet" hidden>
     <div class="panel">
-      <h2>ぴよの服と部屋をふやす</h2>
-      <p>ごはん・おふろ・ねる・おでかけは<br>ずっと無料です。<br>ふえるのは、着るものと部屋です。</p>
+      <h2 id="plusTitle">服と部屋をふやす</h2>
+      <p class="sub">目標・気分・ふりかえり・冒険は<br>ずっと無料です。<br>ふえるのは、着るものと部屋です。</p>
       <div class="choices">
         <button class="choice primary" id="plusYear">1年で3,600円<small>7日間は無料。終わる前にお知らせします</small></button>
         <button class="choice" id="plusMonth">1か月で480円</button>
@@ -176,11 +373,10 @@
       </div>
     </div>
   </div>
-
   <div class="sheet" id="hardSheet" hidden>
     <div class="panel">
       <h2>だいじょうぶです</h2>
-      <p>今のまま、ずっと使えます。<br>おでかけを30回すると、値段が半分になります。</p>
+      <p class="sub">今のまま、ずっと使えます。</p>
       <div class="choices"><button class="choice primary" id="hardOk">わかった</button></div>
     </div>
   </div>
@@ -188,13 +384,10 @@
   <svg class="burst" id="burst" viewBox="0 0 360 640" preserveAspectRatio="none"></svg>
   <div class="dev" id="dev" hidden>
     <button data-dev="hour">+1時間</button>
-    <button data-dev="six">+6時間</button>
     <button data-dev="day">+1日</button>
-    <button data-dev="night14">夜型で14日</button>
-    <button data-dev="heavy14">無理しがちで14日</button>
-    <button data-dev="early14">早寝で14日</button>
-    <button data-dev="away3">3日放置</button>
-    <button data-dev="trips">おでかけ8回分</button>
+    <button data-dev="full">げんき満タン</button>
+    <button data-dev="back">冒険を終わらせる</button>
+    <button data-dev="stars">ほし+100</button>
     <button data-dev="reset">最初から</button>
   </div>
 </div>
@@ -202,42 +395,97 @@
 <script>
 (() => {
 'use strict';
-const KEY = 'piyo-proto-v1';
-const DAY = 86400000, HOUR = 3600000;
+const KEY = 'piyo-proto-v2';
+const DAY = 86400000, HOUR = 3600000, MIN = 60000;
+const ENERGY_MAX = 5;
+const ADVENTURE_MS = 60 * MIN;   // 冒険に出てから帰るまで
 const DEV = new URLSearchParams(location.search).has('dev');
+const $ = (id) => document.getElementById(id);
+const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-// ---------- ひろったもの・着るもの ----------
-// kind: thing=棚に並ぶ / hat・neck・face=着られる。plus=有料で増えるもの（おでかけでは出ない）
-const ITEMS = [
-  { id: 'stone', kind: 'thing', name: 'まるい石', line: '川のほうまで行った。まるい石をひろった。', svg: '<ellipse cx="0" cy="0" rx="9" ry="7" fill="#a9a59d"/><ellipse cx="-3" cy="-2" rx="3" ry="2" fill="#c7c3bb"/>' },
-  { id: 'leaf', kind: 'thing', name: '赤い葉っぱ', line: '赤い葉っぱが落ちてた。きれいだったから持ってきた。', svg: '<path d="M-9 6 Q-8 -8 8 -8 Q8 6 -9 6Z" fill="#d36a4a"/><path d="M-9 6 L5 -5" stroke="#9c4a33" stroke-width="1.2"/>' },
-  { id: 'acorn', kind: 'thing', name: 'どんぐり', line: '公園でどんぐりをみつけた。', svg: '<ellipse cx="0" cy="2" rx="6" ry="8" fill="#b07a45"/><path d="M-7 -3 Q0 -10 7 -3Z" fill="#7a5532"/>' },
-  { id: 'shell', kind: 'thing', name: '貝がら', line: '海までは遠かった。でも貝がらがあった。', svg: '<path d="M-9 6 Q0 -12 9 6Z" fill="#f2d9cf"/><path d="M0 6 L0 -6 M-4 6 L-2 -4 M4 6 L2 -4" stroke="#d9b5a7" stroke-width="1.2"/>' },
-  { id: 'feather', kind: 'thing', name: '羽', line: '空から羽が落ちてきた。', svg: '<path d="M-6 8 Q-6 -6 7 -9 Q4 4 -6 8Z" fill="#dfe6ee"/><path d="M-6 8 L6 -8" stroke="#a9b6c6" stroke-width="1.2"/>' },
-  { id: 'marble', kind: 'thing', name: 'ビー玉', line: '道のすみにビー玉。のぞくと空がまがって見える。', svg: '<circle r="7" fill="#9ec5d8"/><circle cx="-2" cy="-2" r="2" fill="#fff" opacity=".8"/>' },
-  { id: 'button', kind: 'thing', name: 'ボタン', line: 'だれかのボタンをひろった。返す人がわからない。', svg: '<circle r="7" fill="#c98f5a"/><circle cx="-2" cy="-2" r="1.3" fill="#7a5532"/><circle cx="2" cy="-2" r="1.3" fill="#7a5532"/><circle cx="-2" cy="2" r="1.3" fill="#7a5532"/><circle cx="2" cy="2" r="1.3" fill="#7a5532"/>' },
-  { id: 'ticket', kind: 'thing', name: '切符', line: '駅で古い切符をみつけた。どこまで行けるんだろう。', svg: '<rect x="-10" y="-6" width="20" height="12" rx="1.5" fill="#f3e3b5"/><path d="M-6 -1 h12 M-6 2 h8" stroke="#b39d62" stroke-width="1.2"/>' },
-  { id: 'pinecone', kind: 'thing', name: 'まつぼっくり', line: '山のほうは、もう少し寒かった。', svg: '<ellipse cx="0" cy="0" rx="6" ry="9" fill="#8b6a46"/><path d="M-5 -3 h10 M-6 1 h12 M-5 5 h10" stroke="#5f4630" stroke-width="1.2"/>' },
-  { id: 'key', kind: 'thing', name: '小さなかぎ', line: '小さなかぎ。なにをあけるかぎだろう。', svg: '<circle cx="-5" cy="0" r="4" fill="none" stroke="#c9a43a" stroke-width="2"/><path d="M-1 0 h10 M6 0 v3 M9 0 v3" stroke="#c9a43a" stroke-width="2"/>' },
-  { id: 'clover', kind: 'thing', name: '四つ葉', line: '四つ葉をさがしてたら、本当にあった。', svg: '<g fill="#6aa86a"><circle cx="-3" cy="-3" r="3.5"/><circle cx="3" cy="-3" r="3.5"/><circle cx="-3" cy="3" r="3.5"/><circle cx="3" cy="3" r="3.5"/></g>' },
-  { id: 'candy', kind: 'thing', name: 'あめ', line: 'お店の人があめをくれた。半分あげる。', svg: '<circle r="5" fill="#f3b7ae"/><path d="M-5 0 l-5 -4 v8z M5 0 l5 -4 v8z" fill="#f3b7ae"/>' },
-  { id: 'ribbon', kind: 'hat', name: 'リボン', line: '木の枝にリボンがひっかかってた。もらってきた。', img: 'outfit_ribbon' },
-  { id: 'cap', kind: 'hat', name: 'ぼうし', line: '公園のベンチに、ぼうしがあった。ちょうどよかった。', img: 'outfit_cap' },
-  { id: 'scarf', kind: 'neck', name: 'マフラー', line: '風がつめたかった。マフラーを巻いて帰ってきた。', img: 'outfit_scarf' },
-  // 有料（ぴよの服と部屋をふやす）
-  { id: 'pastel', kind: 'room', plus: true, name: 'パステルの部屋', img: 'room' },
+// ---------- 目標のたね ----------
+const SUGGEST = [
+  { cat: 'からだ', list: ['水を一杯のむ', '朝ごはんを食べる', '5分あるく', 'ストレッチする', '歯をみがく', 'シャワーをあびる', '日の光をあびる', '薬をのむ'] },
+  { cat: 'こころ', list: ['深呼吸を3回', '好きな曲を1曲きく', 'よかったことを1つ思い出す', 'スマホを置いて5分休む', '自分にやさしい言葉をかける'] },
+  { cat: 'くらし', list: ['ベッドをととのえる', '机の上を1か所片づける', '洗濯物をたたむ', '明日の服を決める', 'ゴミを出す'] },
+  { cat: 'ねむり', list: ['0時までにふとんに入る', '寝る前にスマホを置く', '起きたらカーテンをあける'] },
+  { cat: 'つながり', list: ['だれかに連絡する', 'ありがとうを1回言う'] },
 ];
-const FREE = ITEMS.filter(i => !i.plus);
-// 服の絵の置き方（ぴよふぃっと Character.tsx と同じ比率）: [幅, 上からの位置]
-const WEAR_POS = { ribbon: [0.45, 0.02], cap: [0.50, -0.08], scarf: [0.68, 0.45] };
-const thumb = (i, full) => i.img
-  ? `<img src="img/${i.img}.webp" alt="" style="width:${full || i.kind === 'room' ? 100 : 74}%;height:${full || i.kind === 'room' ? 100 : 74}%;object-fit:${i.kind === 'room' ? 'cover' : 'contain'};border-radius:${i.kind === 'room' ? 12 : 0}px">`
-  : `<svg viewBox="-15 -15 30 30">${i.svg}</svg>`;
-const byId = (id) => ITEMS.find(i => i.id === id);
+const HELPS = [
+  { id: 'sleep', name: 'よく眠りたい', goals: ['起きたらカーテンをあける', '0時までにふとんに入る'] },
+  { id: 'body', name: '体を大事にしたい', goals: ['水を一杯のむ', '5分あるく'] },
+  { id: 'mind', name: '気持ちを落ちつけたい', goals: ['深呼吸を3回', 'よかったことを1つ思い出す'] },
+  { id: 'life', name: '生活をととのえたい', goals: ['ベッドをととのえる', '机の上を1か所片づける'] },
+  { id: 'kind', name: '自分にやさしくしたい', goals: ['自分にやさしい言葉をかける', '好きな曲を1曲きく'] },
+];
+const BASE_GOALS = ['水を一杯のむ', '歯をみがく', '深呼吸を3回', '日の光をあびる'];
+
+// ---------- 冒険先 ----------
+const DESTS = [
+  { id: 'forest', name: '森', bg: 'forest_bg', story: '森で、木の根っこのあいだに小さなきのこを見つけた。雨のあとに、ひと晩で出てくるんだって。ゆっくりでも、ちゃんと育つものがある。', q: '最近、すこしずつ育ってると思うことはある？' },
+  { id: 'grandpa', name: 'おじいちゃんの家', bg: 'grandpa_house', story: 'おじいちゃんの家で、縁側にすわってお茶をのんだ。おじいちゃんは「急がなくていい」って言ってた。', q: 'いま、急がなくていいことはなに？' },
+  { id: 'friend', name: '友だちの家', bg: 'friend_house', story: '友だちの家でクッキーを食べた。だまって一緒にいるだけで、楽しかった。', q: 'いっしょにいて楽な人は、だれ？' },
+  { id: 'street', name: '商店街', bg: 'errand_bg', story: '商店街でおつかい。八百屋さんがトマトをひとつ、おまけしてくれた。', q: '最近、だれかにしてもらってうれしかったことは？' },
+  { id: 'field', name: '原っぱ', bg: 'play-bg', story: '原っぱで寝ころんで、雲を数えた。7つ目で、数えるのをやめた。', q: 'なにもしない時間、最近とれてる？' },
+  { id: 'dagashi', name: 'だがし屋さん', bg: 'dagashi_shop', story: 'だがし屋さんで、10円のあめを選ぶのに10分かかった。お店のおばあちゃんは、ずっと待っててくれた。', q: '小さいけど好きなものを、ひとつ教えて。' },
+  { id: 'pink', name: 'ピンクの家', bg: 'partner_house', story: 'ピンクの家の庭に、知らない花が咲いてた。名前は聞けなかったけど、いいにおいだった。', q: '名前は知らないけど好きなもの、ある？' },
+  { id: 'mushroom', name: 'きのこの家', bg: 'tsuchinoko_house', story: '森の奥のきのこの家に、ツチノコが住んでた。はずかしがりで、ずっと半分だけ顔を出してた。', q: 'あなたが、はずかしいと思うのはどんなとき？' },
+  { id: 'garden', name: 'ベランダ', bg: 'garden_bg', story: 'ベランダの植木鉢に、芽が出てた。きのうは、なかった。', q: 'あしたの自分に、ひとこと言うなら？' },
+];
+
+// ---------- ひろったもの / 着るもの ----------
+const THINGS = [
+  { id: 'stone', name: 'まるい石', svg: '<ellipse cx="0" cy="0" rx="9" ry="7" fill="#a9a59d"/><ellipse cx="-3" cy="-2" rx="3" ry="2" fill="#c7c3bb"/>' },
+  { id: 'leaf', name: '赤い葉っぱ', svg: '<path d="M-9 6 Q-8 -8 8 -8 Q8 6 -9 6Z" fill="#d36a4a"/><path d="M-9 6 L5 -5" stroke="#9c4a33" stroke-width="1.2"/>' },
+  { id: 'acorn', name: 'どんぐり', svg: '<ellipse cx="0" cy="2" rx="6" ry="8" fill="#b07a45"/><path d="M-7 -3 Q0 -10 7 -3Z" fill="#7a5532"/>' },
+  { id: 'shell', name: '貝がら', svg: '<path d="M-9 6 Q0 -12 9 6Z" fill="#f2d9cf"/><path d="M0 6 L0 -6 M-4 6 L-2 -4 M4 6 L2 -4" stroke="#d9b5a7" stroke-width="1.2"/>' },
+  { id: 'feather', name: '羽', svg: '<path d="M-6 8 Q-6 -6 7 -9 Q4 4 -6 8Z" fill="#dfe6ee"/><path d="M-6 8 L6 -8" stroke="#a9b6c6" stroke-width="1.2"/>' },
+  { id: 'marble', name: 'ビー玉', svg: '<circle r="7" fill="#9ec5d8"/><circle cx="-2" cy="-2" r="2" fill="#fff" opacity=".8"/>' },
+  { id: 'button', name: 'ボタン', svg: '<circle r="7" fill="#c98f5a"/><circle cx="-2" cy="-2" r="1.3" fill="#7a5532"/><circle cx="2" cy="-2" r="1.3" fill="#7a5532"/><circle cx="-2" cy="2" r="1.3" fill="#7a5532"/><circle cx="2" cy="2" r="1.3" fill="#7a5532"/>' },
+  { id: 'ticket', name: '切符', svg: '<rect x="-10" y="-6" width="20" height="12" rx="1.5" fill="#f3e3b5"/><path d="M-6 -1 h12 M-6 2 h8" stroke="#b39d62" stroke-width="1.2"/>' },
+  { id: 'pinecone', name: 'まつぼっくり', svg: '<ellipse cx="0" cy="0" rx="6" ry="9" fill="#8b6a46"/><path d="M-5 -3 h10 M-6 1 h12 M-5 5 h10" stroke="#5f4630" stroke-width="1.2"/>' },
+  { id: 'key', name: '小さなかぎ', svg: '<circle cx="-5" cy="0" r="4" fill="none" stroke="#c9a43a" stroke-width="2"/><path d="M-1 0 h10 M6 0 v3 M9 0 v3" stroke="#c9a43a" stroke-width="2"/>' },
+  { id: 'clover', name: '四つ葉', svg: '<g fill="#6aa86a"><circle cx="-3" cy="-3" r="3.5"/><circle cx="3" cy="-3" r="3.5"/><circle cx="-3" cy="3" r="3.5"/><circle cx="3" cy="3" r="3.5"/></g>' },
+  { id: 'candy', name: 'あめ', svg: '<circle r="5" fill="#f3b7ae"/><path d="M-5 0 l-5 -4 v8z M5 0 l5 -4 v8z" fill="#f3b7ae"/>' },
+];
+const WEARS = [
+  { id: 'ribbon', slot: 'hat', name: 'リボン', img: 'outfit_ribbon', price: 30, pos: [0.45, 0.02] },
+  { id: 'cap', slot: 'hat', name: 'ぼうし', img: 'outfit_cap', price: 50, pos: [0.50, -0.08] },
+  { id: 'scarf', slot: 'neck', name: 'マフラー', img: 'outfit_scarf', price: 80, pos: [0.68, 0.45] },
+];
+const ROOMS = [
+  { id: 'calm', name: 'しずかな部屋', img: 'room2' },
+  { id: 'pastel', name: 'パステルの部屋', img: 'room', plus: true },
+];
+const REWARD = { goal: 5, mood: 5, note: 10, breath: 5, trip: 15 };
+
+// ---------- 気分 ----------
+const MOODS = [
+  { v: 5, name: 'とてもいい', col: '#8cc27e', mouth: 'M-8 3 q8 9 16 0' },
+  { v: 4, name: 'いい', col: '#b5d38a', mouth: 'M-7 4 q7 5 14 0' },
+  { v: 3, name: 'ふつう', col: '#f2cf72', mouth: 'M-7 5 h14' },
+  { v: 2, name: 'よくない', col: '#f0a875', mouth: 'M-7 7 q7 -5 14 0' },
+  { v: 1, name: 'つらい', col: '#d98f8f', mouth: 'M-8 8 q8 -9 16 0' },
+];
+const MOOD_TAGS = ['うれしい', 'おだやか', 'やる気', 'ほっとした', 'つかれた', '不安', 'イライラ', 'さみしい', 'かなしい', 'ぼんやり'];
+const PROMPTS = [
+  'きょう、ちょっとだけよかったことは？',
+  'いま、体のどこが疲れてる？',
+  '最近、自分をほめてもいいと思ったことは？',
+  'あしたの自分に、してあげたいことは？',
+  'いま、頭の中をしめていることは？',
+  '最近わらったのは、どんなとき？',
+  'きょう、がまんしたことはある？',
+  'いま、なにがあったら少し楽になる？',
+];
 
 // ---------- 保存 ----------
-function blank() { return { first: null, logs: [], moods: {}, lines: {}, lastLineDay: null, offset: 0, type: null, typeShown: false,
-  trip: null, lastTripDay: null, found: [], trips: 0, wear: { hat: null, neck: null, room: null }, plus: false, hardShown: false }; }
+function blank() {
+  return { v: 2, offset: 0, setup: false, name: 'ぴよ', you: 'あなた', first: null,
+    goals: [], done: {}, energy: {}, stars: 0, owned: [], wear: { hat: null, neck: null, room: 'calm' }, plus: false,
+    moods: [], notes: [], trip: null, lastTripDay: null, trips: 0, found: [], seenDests: [], pendingStory: null,
+    tools: {}, lastGreetDay: null, lastSeenDay: null, lastReturn: null, totalDone: 0 };
+}
 let S;
 try { S = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) { S = blank(); }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -246,223 +494,374 @@ const now = () => Date.now() + S.offset;
 const dayKey = (t) => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 // 深夜4時までは前の日として扱う
 const lifeDay = (t) => dayKey(t - 4 * HOUR);
+const today = () => lifeDay(now());
 const daysBetween = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / DAY);
-const todayLogs = (type) => S.logs.filter(l => lifeDay(l.t) === lifeDay(now()) && (!type || l.type === type));
-const at = (base, h, m = 0) => { const d = new Date(base); d.setHours(h, m, 0, 0); return d.getTime(); };
+const dayNo = () => S.first ? daysBetween(S.first, today()) + 1 : 1;
+const hhmm = (t) => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const fill = (t) => t.replace(/\{name\}/g, S.name).replace(/\{you\}/g, S.you);
+const energyToday = () => S.energy[today()] || 0;
+const doneToday = () => S.done[today()] || [];
+const toolsToday = () => S.tools[today()] || {};
+const uid = () => Math.random().toString(36).slice(2, 9);
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-// ---------- 状況を数える ----------
-function context() {
-  const t = now(), d = new Date(t), today = lifeDay(t);
-  const dayNo = S.first ? daysBetween(S.first, today) + 1 : 1;
-  const yest = lifeDay(t - DAY);
-  const yLogs = S.logs.filter(l => lifeDay(l.t) === yest);
-  const lastLog = S.logs.length ? S.logs[S.logs.length - 1].t : null;
-  const gapDays = lastLog ? daysBetween(lifeDay(lastLog), today) : 0;
-  const sleeps = S.logs.filter(l => l.type === 'sleep');
-  let sleepStreak = 0;
-  for (let i = 1; i <= 30; i++) {
-    const k = lifeDay(t - i * DAY);
-    const s = sleeps.find(l => lifeDay(l.t) === k);
-    if (s && new Date(s.t).getHours() >= 20) sleepStreak++; else break;
-  }
-  const lastBath = [...S.logs].reverse().find(l => l.type === 'bath');
-  const sleepHours = sleeps.slice(-5).map(l => { const h = new Date(l.t).getHours() + new Date(l.t).getMinutes() / 60; return h < 12 ? h + 24 : h; });
-  return {
-    t, hour: d.getHours(), month: d.getMonth() + 1, date: d.getDate(), wday: d.getDay(), today, dayNo, gapDays,
-    yAll: ['meal', 'bath', 'sleep'].every(k => yLogs.some(l => l.type === k)),
-    yHeavy: S.moods[yest] === 2, sleepStreak,
-    sameTime: sleepHours.length >= 5 && Math.max(...sleepHours) - Math.min(...sleepHours) <= 1,
-    daysSinceBath: lastBath ? daysBetween(lifeDay(lastBath.t), today) : (dayNo >= 4 ? 99 : 0),
-    total: S.logs.length,
-  };
-}
-
-// ---------- 一言（喋らないけど覚えている） ----------
-const LINES = [
-  { id: 'hello', when: c => c.total === 0 && c.dayNo === 1, text: 'はじめまして。' },
-  { id: 'back', when: c => c.gapDays >= 3, text: 'おかえり。' },
-  { id: 'year', when: c => c.month === 12 && c.date === 31, text: 'ことしも、おつかれさま。' },
-  { id: 'month', when: c => c.dayNo === 30, text: 'ひと月いっしょにいる。' },
-  { id: 'week', when: c => c.dayNo === 7, text: '一週間たった。' },
-  { id: 'all', when: c => c.yAll, text: 'きのうは三つともやってた。' },
-  { id: 'sleep3', when: c => c.sleepStreak >= 3, text: '三日つづけて、ちゃんと寝てる。' },
-  { id: 'same', when: c => c.sameTime, text: 'いつも同じくらいの時間に寝るね。' },
-  { id: 'late', when: c => c.hour >= 1 && c.hour < 4, text: 'まだ起きてたんだ。' },
-  { id: 'early', when: c => c.hour >= 4 && c.hour < 7, text: 'はやいね。' },
-  { id: 'bath', when: c => c.daysSinceBath >= 3 && c.daysSinceBath < 90, text: 'おふろ、いつでもいいよ。' },
-  { id: 'sat', when: c => c.wday === 6, text: '土曜日だ。' },
-];
-function pickLine(c) {
-  if (S.lastLineDay === c.today || c.yHeavy) return null;
-  for (const L of LINES) {
-    const last = S.lines[L.id];
-    if (last && daysBetween(last, c.today) < 90) continue;
-    if (L.when(c)) return L;
-  }
-  return null;
-}
+// ---------- 喋る ----------
 let noteTimer = 0;
-function showNote(text, ms = 5200) {
-  $('noteText').textContent = text;
+function say(text, ms = 4200) {
+  $('noteText').textContent = fill(text);
   $('note').classList.add('show');
   clearTimeout(noteTimer);
   noteTimer = setTimeout(() => $('note').classList.remove('show'), ms);
 }
-function maybeSpeak() {
-  if (isAway()) return null;
-  const c = context(), L = pickLine(c);
-  if (!L) return null;
-  S.lines[L.id] = c.today; S.lastLineDay = c.today; save();
-  showNote(L.text);
-  return L.id;
+const GOAL_LINES = ['いっしょにできた。', 'げんきが、たまってきた。', 'ありがとう、{you}。', 'ひとつ、できたね。', 'いい感じ。', 'ぴよっ。'];
+function greet() {
+  if (S.lastGreetDay === today() || isAway() || !S.setup || $('piyoG').dataset.asleep === '1') return;
+  const h = new Date(now()).getHours();
+  const gap = S.lastSeenDay ? daysBetween(S.lastSeenDay, today()) : 0;
+  S.lastGreetDay = today(); save();
+  if (gap >= 3) return say('おかえり、{you}。まってた。');
+  if (h >= 4 && h < 11) return say('おはよう、{you}。');
+  if (h >= 11 && h < 18) return say('こんにちは、{you}。');
+  if (h >= 18 && h < 23) return say('こんばんは、{you}。');
+  say('まだ起きてたんだ。');
 }
 
-// ---------- おでかけ ----------
-// 三つそろった日に出かける。夜にそろったら、ひと晩寝て朝7時に出る。帰りは夕方6時（遅ければ出てから6時間後）
-function planTrip() {
-  const t = now(), h = new Date(t).getHours();
-  const depart = (h >= 19 || h < 4) ? at(h < 4 ? t : t + DAY, 7) : (h < 7 ? at(t, 7) : t);
-  const ret = Math.max(at(depart, 18), depart + 6 * HOUR);
-  // まだ持っていないものを優先して持ち帰る
-  const notYet = FREE.filter(i => !S.found.includes(i.id));
-  const pool = notYet.length ? notYet : FREE;
-  const item = pool[(S.trips * 7 + S.found.length * 3) % pool.length].id;
-  S.trip = { depart, ret, item };
-  S.lastTripDay = lifeDay(t);
-  save();
+// ---------- げんき・ほし ----------
+function addStars(n, fromEl) {
+  S.stars += n;
+  const r = (fromEl || $('starsPill')).getBoundingClientRect();
+  const p = document.createElement('div');
+  p.className = 'plusone'; p.textContent = '+' + n;
+  p.style.left = (r.left + r.width / 2 - 12) + 'px'; p.style.top = (r.top + 4) + 'px';
+  document.body.appendChild(p); setTimeout(() => p.remove(), 1000);
 }
-const isAway = () => !!(S.trip && now() >= S.trip.depart && now() < S.trip.ret);
+function addEnergy(n) {
+  const k = today();
+  S.energy[k] = Math.max(0, Math.min(ENERGY_MAX, (S.energy[k] || 0) + n));
+}
+const canAdventure = () => energyToday() >= ENERGY_MAX && S.lastTripDay !== today() && !S.trip;
+
+// ---------- 目標 ----------
+function toggleGoal(id, el) {
+  if (!S.first) S.first = today();
+  const k = today(), list = S.done[k] || (S.done[k] = []);
+  const i = list.indexOf(id);
+  if (i >= 0) {
+    list.splice(i, 1);
+    if (S.lastTripDay !== k) addEnergy(-1);
+    S.stars = Math.max(0, S.stars - REWARD.goal); S.totalDone = Math.max(0, S.totalDone - 1);
+  } else {
+    list.push(id);
+    addEnergy(1); addStars(REWARD.goal, el); S.totalDone++;
+    if (!isAway()) { pet(true); say(canAdventure() ? 'げんき満タン。冒険に行けそう！' : pick(GOAL_LINES), 2600); }
+  }
+  save(); render();
+}
+let editing = false;
+function renderGoals() {
+  const done = doneToday();
+  $('goals').innerHTML = S.goals.length ? S.goals.map(g => `<div class="goal${done.includes(g.id) ? ' done' : ''}" role="button" tabindex="0" data-goal="${g.id}">
+      <span class="ck"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 5"/></svg></span><span class="tx">${esc(g.text)}</span>
+      ${editing ? `<button class="rm" data-rm="${g.id}">けす</button>` : ''}</div>`).join('')
+    : '<div class="empty">目標がありません。<br>「＋ たす」から足してください。</div>';
+}
+$('goals').addEventListener('click', (e) => {
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { S.goals = S.goals.filter(g => g.id !== rm.dataset.rm); save(); renderGoals(); return; }
+  const g = e.target.closest('[data-goal]');
+  if (g && !editing) toggleGoal(g.dataset.goal, g);
+});
+$('goals').addEventListener('keydown', (e) => { const g = e.target.closest('[data-goal]'); if (g && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); if (!editing) toggleGoal(g.dataset.goal, g); } });
+$('editGoals').onclick = () => { editing = !editing; $('editGoals').textContent = editing ? 'おわる' : 'へんしゅう'; renderGoals(); };
+function addGoalText(text) {
+  text = String(text).trim().slice(0, 24);
+  if (!text || S.goals.some(g => g.text === text)) return false;
+  if (S.goals.length >= 12) { toast('目標は12こまで。けしてから足してね'); return false; }
+  S.goals.push({ id: uid(), text }); save(); renderGoals(); renderSuggest();
+  return true;
+}
+function renderSuggest() {
+  const has = new Set(S.goals.map(g => g.text));
+  $('suggest').innerHTML = SUGGEST.map(c => `<h3>${c.cat}</h3><div class="chips">${c.list.map(t => `<button class="chip${has.has(t) ? ' has' : ''}" data-sg="${esc(t)}">${has.has(t) ? 'たした　' : '＋ '}${esc(t)}</button>`).join('')}</div>`).join('');
+}
+$('addGoal').onclick = () => { renderSuggest(); $('goalInput').value = ''; $('addSheet').hidden = false; };
+$('addClose').onclick = () => { $('addSheet').hidden = true; };
+$('suggest').addEventListener('click', (e) => { const b = e.target.closest('[data-sg]'); if (b && addGoalText(b.dataset.sg)) toast('たしました'); });
+$('goalSave').onclick = () => { if (addGoalText($('goalInput').value)) { $('goalInput').value = ''; toast('たしました'); } };
+$('goalInput').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) $('goalSave').click(); });
+
+// ---------- 気分 ----------
+let moodPick = null, moodTagSel = new Set();
+const faceSvg = (m) => `<svg viewBox="-18 -18 36 36"><circle r="16" fill="${m.col}"/><circle cx="-5.5" cy="-3" r="2" fill="#3b3330"/><circle cx="5.5" cy="-3" r="2" fill="#3b3330"/><path d="${m.mouth}" fill="none" stroke="#3b3330" stroke-width="2" stroke-linecap="round"/></svg>`;
+$('faces').innerHTML = MOODS.map(m => `<button class="face" data-mood="${m.v}" aria-label="${m.name}">${faceSvg(m)}${m.name}</button>`).join('');
+$('moodTags').innerHTML = MOOD_TAGS.map(t => `<button class="chip" data-tag="${t}">${t}</button>`).join('');
+$('faces').addEventListener('click', (e) => { const b = e.target.closest('[data-mood]'); if (!b) return; moodPick = Number(b.dataset.mood); document.querySelectorAll('.face').forEach(f => f.classList.toggle('on', f === b)); $('moodSave').disabled = false; });
+$('moodTags').addEventListener('click', (e) => { const b = e.target.closest('[data-tag]'); if (!b) return; const t = b.dataset.tag; moodTagSel.has(t) ? moodTagSel.delete(t) : moodTagSel.add(t); b.classList.toggle('on'); });
+$('t-mood').onclick = () => { moodPick = null; moodTagSel = new Set(); document.querySelectorAll('.face,.chip[data-tag]').forEach(f => f.classList.remove('on')); $('moodSave').disabled = true; $('moodSheet').hidden = false; };
+$('moodClose').onclick = () => { $('moodSheet').hidden = true; };
+$('moodSave').onclick = () => {
+  if (moodPick == null) return;
+  if (!S.first) S.first = today();
+  S.moods.push({ t: now(), v: moodPick, tags: [...moodTagSel] });
+  const tt = toolsToday(); tt.mood = (tt.mood || 0) + 1; S.tools[today()] = tt;
+  if (tt.mood <= 2) { addEnergy(1); addStars(REWARD.mood, $('t-mood')); }
+  $('moodSheet').hidden = true; save(); render();
+  if (moodPick <= 1) say('きょうは、いてくれるだけでいい。', 5000);
+  else if (moodPick === 2) say('そっか。むりしないでね。', 4000);
+  else if (moodPick >= 4) say('よかった。{name}も、うれしい。', 3200);
+  else say('きろくした。ありがとう。', 3000);
+};
+
+// ---------- ふりかえり ----------
+let promptIdx = 0;
+function openNote() {
+  promptIdx = (daysBetween('2026-01-01', today()) + S.notes.length) % PROMPTS.length;
+  $('notePrompt').textContent = PROMPTS[promptIdx];
+  $('noteInput').value = ''; $('noteSave').disabled = true;
+  $('noteSheet').hidden = false;
+}
+$('t-note').onclick = openNote;
+$('noteOther').onclick = () => { promptIdx = (promptIdx + 1) % PROMPTS.length; $('notePrompt').textContent = PROMPTS[promptIdx]; };
+$('noteInput').addEventListener('input', () => { $('noteSave').disabled = !$('noteInput').value.trim(); });
+$('noteClose').onclick = () => { $('noteSheet').hidden = true; };
+$('noteSave').onclick = () => {
+  const text = $('noteInput').value.trim(); if (!text) return;
+  if (!S.first) S.first = today();
+  S.notes.push({ t: now(), p: $('notePrompt').textContent, a: text });
+  const tt = toolsToday(); tt.note = (tt.note || 0) + 1; S.tools[today()] = tt;
+  if (tt.note === 1) { addEnergy(1); addStars(REWARD.note, $('t-note')); }
+  $('noteSheet').hidden = true; save(); render();
+  say('おしえてくれて、ありがとう。', 3200);
+};
+
+// ---------- 深呼吸 ----------
+let breathTimers = [];
+function stopBreath() { breathTimers.forEach(clearTimeout); breathTimers = []; $('ring').style.transitionDuration = '.3s'; $('ring').style.transform = ''; }
+$('t-breath').onclick = () => { stopBreath(); $('breathSay').textContent = 'はじめる？'; $('breathCnt').textContent = '3回だけ。40秒くらい'; $('breathStart').hidden = false; $('breathSheet').hidden = false; };
+$('breathClose').onclick = () => { stopBreath(); $('breathSheet').hidden = true; };
+const BREATH = [['すって', 4000, 1], ['とめて', 2000, 1], ['はいて', 6000, 0.72]];
+function runBreath(speed = 1) {
+  stopBreath(); $('breathStart').hidden = true;
+  let t = 0;
+  for (let n = 0; n < 3; n++) for (const [word, ms, sc] of BREATH) {
+    breathTimers.push(setTimeout(() => {
+      $('breathSay').textContent = word; $('breathCnt').textContent = (n + 1) + ' / 3';
+      $('ring').style.transitionDuration = (ms * speed / 1000) + 's'; $('ring').style.transform = `scale(${sc})`;
+    }, t));
+    t += ms * speed;
+  }
+  breathTimers.push(setTimeout(() => {
+    $('breathSay').textContent = 'おつかれさま'; $('breathCnt').textContent = '';
+    if (!S.first) S.first = today();
+    const tt = toolsToday(); tt.breath = (tt.breath || 0) + 1; S.tools[today()] = tt;
+    if (tt.breath === 1) { addEnergy(1); addStars(REWARD.breath, $('t-breath')); }
+    save(); render();
+    breathTimers.push(setTimeout(() => { $('breathSheet').hidden = true; say('すこし、ゆっくりになった。', 3000); }, 1400 * speed));
+  }, t));
+}
+$('breathStart').onclick = () => runBreath(1);
+
+// ---------- 冒険 ----------
+function sendAdventure() {
+  if (!canAdventure()) return false;
+  const notYet = DESTS.filter(d => !S.seenDests.includes(d.id));
+  const pool = notYet.length ? notYet : DESTS;
+  const dest = pool[S.trips % pool.length];
+  const left = THINGS.filter(t => !S.found.includes(t.id));
+  const tpool = left.length ? left : THINGS;
+  const item = tpool[(S.trips * 5) % tpool.length];
+  S.trip = { depart: now(), ret: now() + ADVENTURE_MS, dest: dest.id, item: item.id };
+  S.lastTripDay = today();
+  save();
+  say('いってきます！', 1600);
+  burst();
+  const w = $('piyoG');
+  w.classList.remove('breathe', 'hop', 'pet'); void w.offsetWidth; w.classList.add('leave');
+  setTimeout(() => { w.classList.remove('leave'); w.classList.add('breathe'); render(); }, 1450);
+  $('goBtn').hidden = true;
+  return true;
+}
+$('goBtn').onclick = sendAdventure;
+const isAway = () => !!(S.trip && now() < S.trip.ret);
 function checkReturn() {
   if (!S.trip || now() < S.trip.ret) return false;
-  const it = byId(S.trip.item);
+  const t = S.trip;
   S.trip = null; S.trips++; S.lastReturn = now();
-  if (!S.found.includes(it.id)) S.found.push(it.id);
-  S.lastLineDay = lifeDay(now());   // 帰ってきた日は、この話がその日の一言
-  save();
-  render();
+  if (!S.seenDests.includes(t.dest)) S.seenDests.push(t.dest);
+  if (!S.found.includes(t.item)) S.found.push(t.item);
+  S.stars += REWARD.trip;
+  S.pendingStory = { dest: t.dest, item: t.item };
+  save(); render();
   const w = $('piyoG');
   w.classList.remove('breathe'); void w.offsetWidth; w.classList.add('arrive');
   setTimeout(() => { w.classList.remove('arrive'); w.classList.add('breathe'); }, 1150);
-  $('gift').innerHTML = thumb(it, true);
-  $('gift').style.transition = 'opacity .4s'; $('gift').style.opacity = 1;
-  setTimeout(() => showNote(it.line, 7000), 900);
-  setTimeout(() => { $('gift').style.opacity = 0; render(); }, 7600);
-  return it.id;
+  say('ただいま！', 1800);
+  setTimeout(showStory, 1400);
+  return true;
 }
-function leave() {
-  const w = $('piyoG');
-  w.classList.remove('breathe', 'hop'); void w.offsetWidth; w.classList.add('leave');
-  setTimeout(() => { w.classList.remove('leave'); w.classList.add('breathe'); render(); }, 1450);
+function showStory() {
+  const p = S.pendingStory; if (!p) return;
+  const d = DESTS.find(x => x.id === p.dest), it = THINGS.find(x => x.id === p.item);
+  if (!d || !it) { S.pendingStory = null; save(); return; }
+  $('storyImg').style.backgroundImage = `url(img/${d.bg}.webp?v=202610022215)`;
+  $('storyPiyo').src = dayNo() >= 8 ? 'img/piyo_child.webp?v=202610022215' : 'img/piyo.webp?v=202610022215';
+  $('storyTitle').textContent = fill('{name}の冒険：') + d.name;
+  $('storyText').textContent = d.story;
+  $('storyFound').innerHTML = `<svg viewBox="-15 -15 30 30">${it.svg}</svg><span>${esc(it.name)}をひろってきた。<br><small style="color:var(--ink-soft)">ほし +${REWARD.trip}</small></span>`;
+  $('storyQ').textContent = fill('{name}から質問：') + d.q;
+  $('storyInput').value = '';
+  $('storySheet').hidden = false;
+}
+$('storySave').onclick = () => {
+  const p = S.pendingStory, text = $('storyInput').value.trim();
+  if (p && text) {
+    S.notes.push({ t: now(), p: DESTS.find(x => x.id === p.dest).q, a: text });
+    addStars(REWARD.note, $('storySave'));
+  }
+  S.pendingStory = null; save(); $('storySheet').hidden = true; render();
+  say(text ? 'そうなんだ。おしえてくれて、ありがとう。' : 'また、はなそうね。', 3600);
+};
+$('storyClose').onclick = () => { S.pendingStory = null; save(); $('storySheet').hidden = true; render(); };
+
+// ---------- きせかえ ----------
+const STAR = '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="#f5b942"/></svg>';
+function renderCloset() {
+  $('shopGrid').innerHTML = WEARS.map(w => {
+    const owned = S.owned.includes(w.id), on = S.wear[w.slot] === w.id;
+    return `<button class="item${on ? ' on' : ''}" data-wear="${w.id}" aria-label="${w.name}"><span class="pic"><img src="img/${w.img}.webp?v=202610022215" alt=""></span>${w.name}<span class="price">${owned ? (on ? '着ている' : '持っている') : STAR + w.price}</span></button>`;
+  }).join('');
+  $('roomGrid').innerHTML = ROOMS.map(r => {
+    const on = S.wear.room === r.id, locked = r.plus && !S.plus;
+    return `<button class="item${on ? ' on' : ''}" data-room="${r.id}" aria-label="${r.name}"><span class="pic"><img class="roomimg" src="img/${r.img}.webp?v=202610022215" alt=""></span>${r.name}${locked ? '<svg class="lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>' : ''}<span class="price">${on ? 'いまの部屋' : locked ? 'プラス' : ''}</span></button>`;
+  }).join('');
+}
+$('shopGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-wear]'); if (!b) return;
+  const w = WEARS.find(x => x.id === b.dataset.wear);
+  if (!S.owned.includes(w.id)) {
+    if (S.stars < w.price) { toast(`ほしが、あと${w.price - S.stars}こ必要`); return; }
+    S.stars -= w.price; S.owned.push(w.id); S.wear[w.slot] = w.id; burst(); toast(w.name + 'を着せました');
+  } else {
+    S.wear[w.slot] = S.wear[w.slot] === w.id ? null : w.id;
+  }
+  save(); render(); renderCloset();
+});
+$('roomGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-room]'); if (!b) return;
+  const r = ROOMS.find(x => x.id === b.dataset.room);
+  if (r.plus && !S.plus) { $('plusTitle').textContent = fill('{name}の服と部屋をふやす'); $('plusSheet').hidden = false; return; }
+  S.wear.room = r.id; save(); render(); renderCloset();
+});
+// 試作なので決済はしない。押すと有料の状態になるだけ
+$('plusYear').onclick = $('plusMonth').onclick = () => { S.plus = true; save(); $('plusSheet').hidden = true; renderCloset(); burst(); };
+$('plusNo').onclick = () => { $('plusSheet').hidden = true; $('hardSheet').hidden = false; };
+$('hardOk').onclick = () => { $('hardSheet').hidden = true; };
+let toastTimer = 0;
+function toast(t) {
+  let el = $('toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; el.setAttribute('role', 'status'); el.style.cssText = 'position:absolute;left:50%;bottom:96px;transform:translateX(-50%);background:#3b3330;color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;white-space:nowrap;pointer-events:none'; $('app').appendChild(el); }
+  el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 1800);
 }
 
-// ---------- 性格（14日で決まる・無料） ----------
-function leaning() {
-  const sleeps = S.logs.filter(l => l.type === 'sleep');
-  const days = Object.keys(S.moods).length || 1;
-  const late = sleeps.filter(l => { const h = new Date(l.t).getHours(); return h >= 1 && h < 4; }).length / Math.max(1, sleeps.length);
-  const heavy = Object.values(S.moods).filter(m => m === 2).length / days;
-  const early = sleeps.filter(l => { const h = new Date(l.t).getHours(); return h >= 20 && h < 23; }).length / Math.max(1, sleeps.length);
-  if (sleeps.length >= 3 && late >= 0.4) return 'night';
-  if (heavy >= 0.3) return 'worry';
-  if (sleeps.length >= 3 && early >= 0.5) return 'morning';
-  return 'calm';
+// ---------- きろく ----------
+function renderLog() {
+  $('stDays').textContent = dayNo(); $('stTrips').textContent = S.trips; $('stGoals').textContent = S.totalDone;
+  const w = [];
+  for (let i = 6; i >= 0; i--) {
+    const k = lifeDay(now() - i * DAY), ms = S.moods.filter(m => lifeDay(m.t) === k);
+    const avg = ms.length ? Math.round(ms.reduce((a, m) => a + m.v, 0) / ms.length) : null;
+    const col = avg ? MOODS.find(m => m.v === avg).col : null;
+    w.push(`<div class="wd"><i style="${col ? 'background:' + col : ''}"></i>${'日月火水木金土'[new Date(k + 'T12:00:00').getDay()]}</div>`);
+  }
+  $('week').innerHTML = w.join('');
+  $('foundCount').textContent = S.found.length + ' / ' + THINGS.length;
+  $('things').innerHTML = THINGS.map(t => S.found.includes(t.id) ? `<div class="thing" title="${t.name}" aria-label="${t.name}"><svg viewBox="-15 -15 30 30">${t.svg}</svg></div>` : '<div class="thing no"></div>').join('');
+  $('entries').innerHTML = S.notes.length ? S.notes.slice().reverse().map(n => { const d = new Date(n.t); return `<div class="entry"><div class="d">${d.getMonth() + 1}月${d.getDate()}日 ${hhmm(n.t)}</div><div class="p">${esc(n.p)}</div><div class="a">${esc(n.a)}</div></div>`; }).join('') : '<div class="empty">まだありません。<br>ホームの「ふりかえり」から書けます。</div>';
 }
-const TYPES = {
-  night: { name: '夜行性', body: '夜ふかしの日が多かったから、ぴよは夜に目が冴える子になった。' },
-  worry: { name: '心配性', body: '重い日がつづいたから、ぴよはあなたの様子をよく見る子になった。' },
-  morning: { name: '朝型', body: '早く寝る日が多かったから、ぴよは朝が得意な子になった。' },
-  calm: { name: 'のんびり', body: 'あなたのペースに合わせて、ぴよはのんびりした子になった。' },
-};
-function checkType() {
-  const c = context();
-  if (S.typeShown || c.dayNo < 15 || isAway()) return;
-  S.type = leaning(); S.typeShown = true; save();
-  $('typeTitle').textContent = 'ぴよは「' + TYPES[S.type].name + '」になった';
-  $('typeBody').textContent = TYPES[S.type].body;
-  $('typeSheet').hidden = false;
-  render(); burst();
+
+// ---------- タブ ----------
+let tab = 'home';
+function showTab(name) {
+  tab = name;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
+  for (const v of ['home', 'closet', 'log']) $('v-' + v).hidden = v !== name;
+  if (name === 'closet') renderCloset();
+  if (name === 'log') renderLog();
+  if (name === 'home') layout();
 }
-$('typeOk').onclick = () => { $('typeSheet').hidden = true; };
+document.querySelector('.tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
 
 // ---------- 描画 ----------
-function $(id) { return document.getElementById(id); }
 function phaseOf(h) { return h >= 5 && h < 10 ? 'morning' : h >= 10 && h < 16 ? 'day' : h >= 16 && h < 19 ? 'evening' : 'night'; }
-// 部屋の絵に重ねる色（乗算）。昼は素のまま
-const TINT = { morning: 'rgb(238,242,255)', day: 'rgb(255,255,255)', evening: 'rgb(255,214,182)', night: 'rgb(96,108,156)' };
-const WALL = { morning: '#e9e6e0', day: '#efebe4', evening: '#ead7c8', night: '#2b3350' };
-const hhmm = (t) => { const d = new Date(t); return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const TINT = { morning: 'rgb(240,243,255)', day: 'rgb(255,255,255)', evening: 'rgb(255,218,188)', night: 'rgb(110,120,170)' };
 
-// ぴよの大きさと位置は部屋の実寸から決める
 function layout() {
-  const r = document.querySelector('.room').getBoundingClientRect();
-  const dayNo = S.first ? context().dayNo : 1;
-  const grow = 1 + Math.min(0.15, (dayNo - 1) * 0.005);
-  const size = Math.round(Math.min(r.width * 0.56, r.height * 0.46, 250) * grow);
-  const bottom = Math.round(r.height * 0.08);
+  const r = $('room').getBoundingClientRect();
+  if (!r.height) return;
+  const grow = 1 + Math.min(0.12, (dayNo() - 1) * 0.004);
+  const size = Math.round(Math.min(r.width * 0.5, r.height * 0.6, 220) * grow);
+  const bottom = Math.round(r.height * 0.07);
   const w = $('piyoWrap');
   w.style.width = w.style.height = size + 'px';
   w.style.bottom = bottom + 'px';
   w.style.marginLeft = -size / 2 + 'px';
-  $('note').style.bottom = (bottom + size * (S.wear.hat ? 1.1 : 0.98)) + 'px';
+  $('note').style.bottom = Math.min(r.height - 64, bottom + size * (S.wear.hat ? 1.08 : 0.96)) + 'px';
   for (const [slot, el] of [['hat', 'wearHat'], ['neck', 'wearNeck']]) {
-    const pos = WEAR_POS[S.wear[slot]];
-    if (!pos) continue;
-    $(el).style.width = Math.floor(size * pos[0]) + 'px';
-    $(el).style.left = Math.floor(size * (1 - pos[0]) / 2) + 'px';
-    $(el).style.top = Math.floor(size * pos[1]) + 'px';
+    const it = WEARS.find(x => x.id === S.wear[slot]);
+    if (!it) continue;
+    $(el).style.width = Math.floor(size * it.pos[0]) + 'px';
+    $(el).style.left = Math.floor(size * (1 - it.pos[0]) / 2) + 'px';
+    $(el).style.top = Math.floor(size * it.pos[1]) + 'px';
   }
 }
 
 function render() {
-  const c = context(), ph = phaseOf(c.hour);
+  const t = now(), d = new Date(t), h = d.getHours(), ph = phaseOf(h);
   $('tint').style.background = TINT[ph];
-  $('app').style.background = WALL[ph];
   $('glow').style.opacity = ph === 'night' || ph === 'evening' ? 1 : 0;
-  document.body.classList.toggle('night', ph === 'night');
-  $('bg').classList.toggle('pastel', S.plus && S.wear.room === 'pastel');
-  const d = new Date(c.t);
-  $('date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '日月火水木金土'[d.getDay()] + '曜';
-  $('dayCount').textContent = S.first ? c.dayNo + '日目' : '';
-  for (const k of ['meal', 'bath', 'sleep']) $('act-' + k).classList.toggle('done', todayLogs(k).length > 0);
+  $('bg').classList.toggle('pastel', S.wear.room === 'pastel' && S.plus);
+  $('date').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + '日月火水木金土'[d.getDay()] + '曜' + (S.first ? '　' + dayNo() + '日目' : '');
+  $('stars').textContent = S.stars;
+  $('nametag').textContent = S.name;
 
-  // おでかけ中
-  const away = isAway();
+  // げんき
+  const e = energyToday(), away = isAway(), tripDone = S.lastTripDay === today() && !away;
+  $('energyBar').style.width = (tripDone || away ? 100 : e / ENERGY_MAX * 100) + '%';
+  $('energyNum').textContent = tripDone || away ? '' : e + ' / ' + ENERGY_MAX;
+  $('energyLbl').textContent = away ? fill('{name}は冒険中。') + hhmm(S.trip.ret) + 'ごろ帰る'
+    : tripDone ? 'きょうの冒険はおわり。また明日'
+    : e >= ENERGY_MAX ? 'げんき満タン' : '冒険のげんき（あと' + (ENERGY_MAX - e) + 'つ）';
+  $('goBtn').hidden = !canAdventure();
+
+  // 冒険中
   $('piyoWrap').style.opacity = away ? 0 : 1;
-  $('tag').hidden = !away;
-  if (away) $('tagText').textContent = hhmm(S.trip.ret) + 'ごろ帰る';
+  $('piyoWrap').style.pointerEvents = away ? 'none' : '';
+  $('awayTag').hidden = !away;
+  if (away) $('awayText').textContent = hhmm(S.trip.ret) + 'ごろ帰る';
 
-  // 寝ているか。おでかけ7回で、ひとまわり大きい子になる
-  const lastSleep = todayLogs('sleep').slice(-1)[0];
-  const asleep = !away && !!lastSleep && lastSleep.t > (S.lastReturn || 0) && (c.hour >= 19 || c.hour < 7);
-  const src = asleep ? 'img/piyo_sleep.webp' : S.trips >= 7 ? 'img/piyo_child.webp' : 'img/piyo.webp';
+  // 寝ている（夜11時〜朝6時。冒険から帰ってすぐは起きている）
+  const asleep = !away && (h >= 23 || h < 6) && !(S.lastReturn && t - S.lastReturn < 30 * MIN);
+  const src = asleep ? 'img/piyo_sleep.webp?v=202610022215' : dayNo() >= 8 ? 'img/piyo_child.webp?v=202610022215' : 'img/piyo.webp?v=202610022215';
   if ($('body').getAttribute('src') !== src) $('body').setAttribute('src', src);
   $('piyoG').dataset.asleep = asleep ? '1' : '';
   $('zzz').style.opacity = asleep ? 1 : 0;
-
-  // 着ているもの（寝ているときは脱ぐ。ぴよふぃっとと同じ）
   for (const [slot, el] of [['hat', 'wearHat'], ['neck', 'wearNeck']]) {
-    const it = S.wear[slot] && byId(S.wear[slot]);
+    const it = WEARS.find(x => x.id === S.wear[slot]);
     $(el).hidden = !it || asleep;
-    if (it && $(el).getAttribute('src') !== 'img/' + it.img + '.webp') $(el).setAttribute('src', 'img/' + it.img + '.webp');
+    if (it && $(el).getAttribute('src') !== 'img/' + it.img + '.webp?v=202610022215') $(el).setAttribute('src', 'img/' + it.img + '.webp?v=202610022215');
   }
+  const tt = toolsToday();
+  $('t-mood').classList.toggle('did', !!tt.mood); $('t-note').classList.toggle('did', !!tt.note); $('t-breath').classList.toggle('did', !!tt.breath);
+  renderGoals();
   layout();
 }
 
-function hop() {
-  const g = $('piyoG');
-  g.classList.remove('breathe', 'hop'); void g.offsetWidth; g.classList.add('hop');
-  setTimeout(() => { g.classList.remove('hop'); g.classList.add('breathe'); }, 720);
-}
-function flash(id) {
-  const el = $(id); el.style.transition = 'opacity .3s'; el.style.opacity = 1;
-  setTimeout(() => { el.style.opacity = 0; }, 1800);
-}
 function burst() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const svg = $('burst'), cols = ['#f5c85b', '#f3b7ae', '#9ec5d8', '#4e7a8c', '#ffffff'];
+  const svg = $('burst'), cols = ['#f5b942', '#f3b7ae', '#9ec5d8', '#e58f5b', '#ffffff'];
   let html = '';
-  for (let i = 0; i < 46; i++) {
-    const x = 180 + (Math.random() - 0.5) * 60, y = 430, dx = (Math.random() - 0.5) * 360, dy = -220 - Math.random() * 260;
+  for (let i = 0; i < 40; i++) {
+    const x = 180 + (Math.random() - 0.5) * 60, y = 300, dx = (Math.random() - 0.5) * 360, dy = -160 - Math.random() * 200;
     const r = 3 + Math.random() * 4, col = cols[i % cols.length], dur = 1.1 + Math.random() * 0.7;
     html += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}"><animateTransform attributeName="transform" type="translate" values="0 0; ${dx * 0.6} ${dy}; ${dx} ${dy + 380}" keyTimes="0;0.45;1" dur="${dur}s" fill="freeze"/><animate attributeName="opacity" values="1;1;0" keyTimes="0;0.7;1" dur="${dur}s" fill="freeze"/></circle>`;
   }
@@ -470,109 +869,128 @@ function burst() {
   setTimeout(() => { svg.innerHTML = ''; }, 2000);
 }
 
-// ---------- 操作 ----------
-function act(type) {
-  if (isAway()) { showNote(hhmm(S.trip.ret) + 'ごろ帰るって。', 2600); return; }
-  if (!S.first) S.first = lifeDay(now());
-  const already = todayLogs(type).length > 0;
-  if (!already) S.logs.push({ type, t: now() });
-  save();
-  hop();
-  if (type === 'meal') flash('bowl');
-  if (type === 'bath') flash('bubbles');
-  render();
-  const allDone = ['meal', 'bath', 'sleep'].every(k => todayLogs(k).length > 0);
-  if (!already && allDone) {
-    burst();
-    if (S.lastTripDay !== lifeDay(now()) && !S.trip) {
-      planTrip();
-      const goNow = now() >= S.trip.depart;
-      setTimeout(() => showNote(goNow ? 'ちょっと出かけてくる。' : 'あした、出かけてくる。', 3000), type === 'sleep' ? 0 : 400);
-      if (goNow) setTimeout(leave, 1600);
-    }
+// ---------- なでる・ふりふり・ふらふら歩く（ぴよふぃっとと同じ） ----------
+const chirp = new Audio('sfx/piyo-chirp.mp3?v=202610022215');
+chirp.preload = 'auto';
+function playChirp() {
+  try { const a = chirp.cloneNode(); a.volume = 0.85; const p = a.play(); if (p) p.catch(() => {}); } catch (e) {}
+}
+const canTouch = () => !isAway() && $('piyoG').dataset.asleep !== '1';
+let lastPet = 0;
+function pet(quiet) {
+  const t = Date.now();
+  if (t - lastPet < 700 || !canTouch()) return false;
+  lastPet = t;
+  playChirp();
+  const g = $('piyoG');
+  g.classList.remove('pet', 'hop'); void g.offsetWidth; g.classList.add(quiet ? 'hop' : 'pet');
+  setTimeout(() => g.classList.remove('pet', 'hop'), quiet ? 720 : 560);
+  for (const [dx, size, delay] of [[-28, 22, 0], [0, 28, 150], [26, 20, 50]]) {
+    setTimeout(() => {
+      const hEl = document.createElement('div');
+      hEl.className = 'heart';
+      hEl.style.setProperty('--dx', dx + 'px'); hEl.style.width = hEl.style.height = size + 'px';
+      hEl.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-9.6-9.4C1 8.5 3 5 6.4 5c1.9 0 3.5 1 4.6 2.6h2C14.1 6 15.7 5 17.6 5 21 5 23 8.5 21.6 11.6 19.5 16.3 12 21 12 21z"/></svg>';
+      $('piyoWrap').appendChild(hEl);
+      setTimeout(() => hEl.remove(), 950);
+    }, delay);
   }
-  if (type === 'sleep' && !already) setTimeout(() => { $('moodSheet').hidden = false; }, 500);
-  else if (!allDone) maybeSpeak();
+  return true;
 }
-$('act-meal').onclick = () => act('meal');
-$('act-bath').onclick = () => act('bath');
-$('act-sleep').onclick = () => act('sleep');
-document.querySelectorAll('#moodSheet .choice').forEach(b => b.onclick = () => {
-  S.moods[lifeDay(now())] = Number(b.dataset.mood); save();
-  $('moodSheet').hidden = true;
-  render();
+let drag = null;
+const clampOffset = (dx, dy) => {
+  const MAX = 60, mag = Math.hypot(dx, dy);
+  if (mag <= MAX) return [dx, dy];
+  const f = MAX + (mag - MAX) * 0.25;
+  return [dx / mag * f, dy / mag * f];
+};
+$('piyoWrap').addEventListener('pointerdown', (e) => {
+  if (!canTouch()) return;
+  drag = { x: e.clientX, y: e.clientY, id: e.pointerId, moved: false };
+  $('piyoDrag').classList.remove('release');
+  try { $('piyoWrap').setPointerCapture(e.pointerId); } catch (err) {}
 });
+$('piyoWrap').addEventListener('pointermove', (e) => {
+  if (!drag || drag.id !== e.pointerId) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.moved && Math.hypot(dx, dy) > 6) { drag.moved = true; $('piyoWrap').classList.add('dragging'); }
+  if (!drag.moved) return;
+  const [ox, oy] = clampOffset(dx, dy);
+  $('piyoDrag').style.transform = `translate(${ox}px,${oy}px) rotate(${ox * 0.25}deg)`;
+});
+const endDrag = (e) => {
+  if (!drag || drag.id !== e.pointerId) return;
+  const moved = drag.moved; drag = null;
+  $('piyoWrap').classList.remove('dragging');
+  if (moved) { $('piyoDrag').classList.add('release'); $('piyoDrag').style.transform = ''; setTimeout(() => $('piyoDrag').classList.remove('release'), 430); }
+  else if (e.type === 'pointerup') pet();
+};
+$('piyoWrap').addEventListener('pointerup', endDrag);
+$('piyoWrap').addEventListener('pointercancel', endDrag);
+$('piyoWrap').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pet(); } });
+let wanderTimer = 0;
+function wander() {
+  clearTimeout(wanderTimer);
+  wanderTimer = setTimeout(wander, 3500 + Math.random() * 3500);
+  const size = $('piyoWrap').offsetWidth;
+  const still = !canTouch() || drag || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const x = still ? 0 : (Math.random() * 2 - 1) * Math.min(70, size * 0.3);
+  $('piyoWrap').style.transform = `translateX(${x.toFixed(1)}px)`;
+}
 
-// ---------- 着るもの・ひろったもの ----------
-function renderCloset() {
-  const wearables = ITEMS.filter(i => i.kind !== 'thing');
-  $('wearGrid').innerHTML = wearables.map(i => {
-    const owned = i.plus ? S.plus : S.found.includes(i.id);
-    const on = S.wear[i.kind] === i.id;
-    if (!owned && !i.plus) return `<div class="cell empty" aria-label="まだない"></div>`;
-    return `<button class="cell${on ? ' on' : ''}" data-wear="${i.id}" aria-label="${i.name}">${thumb(i)}${!owned ? '<svg class="lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>' : ''}</button>`;
-  }).join('');
-  const things = FREE.filter(i => i.kind === 'thing');
-  $('foundCount').textContent = S.found.length + ' / ' + FREE.length;
-  $('foundGrid').innerHTML = things.map(i => S.found.includes(i.id)
-    ? `<div class="cell" aria-label="${i.name}"><svg viewBox="-15 -15 30 30">${i.svg}</svg><span class="nm">${i.name}</span></div>`
-    : `<div class="cell empty"></div>`).join('');
+// ---------- はじめて ----------
+const obHelpSel = new Set();
+function showStep(n) {
+  document.querySelectorAll('#onboard [data-step]').forEach(s => { s.hidden = Number(s.dataset.step) !== n; });
+  document.querySelectorAll('#onboard .steps i').forEach((dot, i) => dot.classList.toggle('on', i <= n));
 }
-$('openCloset').onclick = () => { renderCloset(); $('closetSheet').hidden = false; };
-$('closetClose').onclick = () => { $('closetSheet').hidden = true; };
-$('wearGrid').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-wear]'); if (!b) return;
-  const it = byId(b.dataset.wear);
-  if (it.plus && !S.plus) { $('plusSheet').hidden = false; return; }
-  S.wear[it.kind] = S.wear[it.kind] === it.id ? null : it.id;
-  save(); renderCloset(); render(); hop();
-});
-// 試作なので決済はしない。押すと有料の状態になるだけ
-$('plusYear').onclick = $('plusMonth').onclick = () => { S.plus = true; save(); $('plusSheet').hidden = true; renderCloset(); burst(); };
-$('plusNo').onclick = () => { $('plusSheet').hidden = true; $('hardSheet').hidden = false; S.hardShown = true; save(); };
-$('hardOk').onclick = () => { $('hardSheet').hidden = true; };
+$('obHelps').innerHTML = HELPS.map(h => `<button class="chip" data-help="${h.id}">${h.name}</button>`).join('');
+$('obHelps').addEventListener('click', (e) => { const b = e.target.closest('[data-help]'); if (!b) return; const id = b.dataset.help; obHelpSel.has(id) ? obHelpSel.delete(id) : obHelpSel.add(id); b.classList.toggle('on'); });
+$('obNext0').onclick = () => { S.name = $('obName').value.trim().slice(0, 10) || 'ぴよ'; $('obQ1').textContent = S.name + 'は、あなたのことを なんて呼べばいい？'; showStep(1); };
+$('obNext1').onclick = () => { S.you = $('obYou').value.trim().slice(0, 10) || 'あなた'; showStep(2); };
+$('obDone').onclick = () => {
+  const texts = [];
+  for (const hp of HELPS) if (obHelpSel.has(hp.id)) texts.push(...hp.goals);
+  for (const t of BASE_GOALS) if (texts.length < 5 && !texts.includes(t)) texts.push(t);
+  S.goals = [...new Set(texts)].slice(0, 8).map(text => ({ id: uid(), text }));
+  S.setup = true; S.first = today(); S.lastGreetDay = today(); S.lastSeenDay = today();
+  save();
+  $('onboard').hidden = true;
+  render(); burst();
+  setTimeout(() => say('よろしくね、{you}。目標をひとつやるたびに、げんきがたまるよ。', 6000), 400);
+};
+['obName', 'obYou'].forEach((id, i) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) $('obNext' + i).click(); }));
 
 // ---------- 試す用（?dev） ----------
-function simulate(days, pattern) {
-  const base = now();
-  if (!S.first) S.first = lifeDay(base);
-  for (let i = 0; i < days; i++) {
-    const day0 = new Date(base + i * DAY); day0.setHours(0, 0, 0, 0);
-    const t = (h, m = 0) => day0.getTime() + (h * 60 + m) * 60000;
-    S.logs.push({ type: 'meal', t: t(pattern === 'early' ? 7 : 12) });
-    if (pattern !== 'heavy' || i % 2) S.logs.push({ type: 'bath', t: t(21) });
-    const sleepAt = pattern === 'night' ? t(26, 30) : pattern === 'early' ? t(22) : t(24, 30);
-    S.logs.push({ type: 'sleep', t: sleepAt });
-    S.moods[lifeDay(sleepAt)] = pattern === 'heavy' ? (i % 3 === 0 ? 1 : 2) : 0;
-  }
-  S.offset += days * DAY;
-}
 if (DEV) {
   $('dev').hidden = false;
   $('dev').addEventListener('click', (e) => {
     const k = e.target.dataset.dev; if (!k) return;
     if (k === 'hour') S.offset += HOUR;
-    if (k === 'six') S.offset += 6 * HOUR;
     if (k === 'day') S.offset += DAY;
-    if (k === 'night14') simulate(14, 'night');
-    if (k === 'heavy14') simulate(14, 'heavy');
-    if (k === 'early14') simulate(14, 'early');
-    if (k === 'away3') S.offset += 3 * DAY;
-    if (k === 'trips') { for (let i = 0; i < 8; i++) { const it = FREE.filter(x => !S.found.includes(x.id))[0]; if (it) S.found.push(it.id); S.trips++; } }
-    if (k === 'reset') { const off = S.offset; S = blank(); S.offset = off; }
+    if (k === 'full') { S.energy[today()] = ENERGY_MAX; if (S.lastTripDay === today() && !S.trip) S.lastTripDay = null; }
+    if (k === 'back' && S.trip) S.trip.ret = now() - 1;
+    if (k === 'stars') S.stars += 100;
+    if (k === 'reset') { const off = S.offset; S = blank(); S.offset = off; save(); location.reload(); return; }
     save(); tick();
   });
 }
 
 // ---------- 起動 ----------
-function tick() { render(); if (!checkReturn()) { maybeSpeak(); } checkType(); }
+function tick() {
+  render();
+  if (!checkReturn()) { if (S.pendingStory && $('storySheet').hidden) showStory(); else greet(); }
+  if (S.setup) { S.lastSeenDay = today(); save(); }
+}
+if (!S.setup) { showStep(0); $('onboard').hidden = false; }
 render();
-setTimeout(tick, 600);
+setTimeout(tick, 500);
 setInterval(() => { render(); checkReturn(); }, 30000);
 addEventListener('resize', layout);
+wanderTimer = setTimeout(wander, 2000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick(); });
 window.__booted = true;
-window.__M = { get S() { return S; }, context, pickLine, leaning, act, render, simulate, LINES, ITEMS, FREE, save, blank, isAway, checkReturn, tick, planTrip, setS(v) { S = v; } };
+window.__M = { get S() { return S; }, save, render, tick, pet, wander, isAway, canAdventure, sendAdventure, checkReturn, runBreath, addGoalText, energyToday, today, showTab, ENERGY_MAX, DESTS, setS(v) { S = v; } };
 })();
 </script>
 </body>
